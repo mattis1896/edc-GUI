@@ -1,0 +1,139 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+h3{
+    text-align: center;
+    top: 0px;
+}
+.navbar {
+    display: flex;
+    background-color: #e0e0e0;
+    padding: 10px;
+    font-size: larger;
+}
+.navbar a {
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    border-radius: 8px;
+}
+.navbar a:hover {
+    background-color: #d0d0d0;
+}
+.navbar img {
+    height: 35px;
+    width: auto; 
+    margin-right: 20px;
+    display: block; /* Entfernt zusätzlichen Abstand */
+}
+#WAGO-logo{
+    background-color: #e0e0e0;
+    padding: 0px;
+}
+.container {
+    margin: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 20%;
+}
+#tab-configuration{
+    background-color: #EFF0F1;
+}
+/* Stile für den Reset-Button */
+.reset {
+    position: absolute;
+    right: 10px; /* Setzt den Button 10px vom rechten Rand der Navbar */
+    top: 3.5%; /* Positioniert den Button auf der vertikalen Mitte der Navbar */
+    transform: translateY(-50%); /* Korrektur für perfekte mittige Position */
+}
+
+
+.provider-group{
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.provider-group input {
+    flex: 1;
+    padding: 5px;
+    margin-right: 5px;
+}
+.consumer-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.consumer-group input {
+    flex: 1;
+    padding: 5px;
+    margin-right: 5px;
+}
+.add-remove-btn {
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 5px;
+    background-color: #EFEFEF;
+    border: 1px solid black;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#add-remove-container{
+    display: flex;
+}
+.configuration {
+    display: flex;  /* Nutzt Flexbox für Layout */
+    width: 100%;  /* Füllt die gesamte Breite */
+    height: calc(100vh - 60px);  /* Höhe anpassen (abzüglich Navbar-Höhe) */
+}
+
+.configuration > div:first-child {
+    width: 25%;  /* Linker Bereich mit Provider und Consumer */
+    display: flex;
+    flex-direction: column;
+    gap: 5px;  /* Abstand zwischen den Containern */
+}
+
+.configuration .container {
+    width: 80%;  /* Behält gleiche Breite für Provider & Consumer */
+}
+
+.configuration > .container:last-child {
+    flex-grow: 1;  /* Nimmt den ganzen verfügbaren Platz rechts */
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#terminal-container {
+    flex-grow: 1; /* Füllt den gesamten verbleibenden Platz in der Höhe */
+    width: 98%;
+    border: 1px solid #333;
+    padding: 10px;
+    background: black;
+    display: flex; /* Falls der Inhalt auch zentriert sein soll */
+    align-items: center;
+    justify-content: center;
+}
+.logs{
+    width: 100%;
+    justify-content: center;
+}
+.xterm {
+    width: 100%;
+    height: 100%;
+}

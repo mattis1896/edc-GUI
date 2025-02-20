@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EDC-Demonstrator</title>
+    <link rel="stylesheet" href="../css/configuration.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <link rel="icon" type="image/x-icon" href="../pictures/WAGO_W.png">
+</head>
+<script type="module" src="../js/configuration.js" defer></script>
+<script src="http://localhost:35729/livereload.js"></script>
+<body>
+    <div class="navbar">
+        <a href="https://www.wago.com/de/" id="WAGO-logo">
+            <img src="../pictures/WAGO_logo.png" alt="logo">
+        </a>
+        <a href="configuration.html" id="tab-configuration">Configuration</a>
+        <a href="provider.html" id="tab-provider">Provider</a>
+        <a href="consumer.html" id="tab-consumer">Consumer</a>
+        <div class="reset">
+            <button id="btn-reset">Reset</button>
+        </div>
+    </div>
+    <div class="configuration">
+        <div>
+            <div class="container">
+                <h3 class="headline">Provider</h3>
+                <div id="provider-container">
+                    <div class="provider-group">
+                        <input type="text" placeholder="provider address" id="provider-address">
+                        <button id="btn-provider" name="provider">Connect</button>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <h3>Consumer</h3>
+                <div id="consumer-container">
+                    <div id="add-remove-container">
+                        <button class="add-remove-btn" onclick=removeConsumer()>-</button>
+                        <button class="add-remove-btn" onclick=addConsumer()>+</button>
+                    </div>
+                    <div class="consumer-group" id="consumer1">
+                        <input type="text" placeholder="consumer1 address" id="consumer1-address">
+                        <button id="btn-consumer1" name="consumer1">Connect</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="logs">
+                <h3>Logs</h3>
+                <div id="terminal-container"></div>
+                <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+                <input type="text" id="command" placeholder="Befehl eingeben">
+                <button onclick="sendCommand()" id="send-command">Senden</button>
+                <div id="result">Ergebnis wird hier angezeigt...</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

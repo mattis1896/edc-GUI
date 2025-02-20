@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EDC-Demonstrator</title>
+    <link rel="stylesheet" href="../css/provider.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <link rel="icon" type="image/x-icon" href="../pictures/WAGO_W.png">
+</head>
+<script type="module" src="../js/provider.js" defer></script>
+<body>
+    <div class="navbar">
+        <a href="https://www.wago.com/de/" id="WAGO-logo">
+            <img src="../pictures/WAGO_logo.png" alt="logo">
+        </a>
+        <a href="configuration.html" id="tab-configuration">Configuration</a>
+        <a href="provider.html" id="tab-provider">Provider</a>
+        <a href="consumer.html" id="tab-consumer">Consumer</a>
+    </div>
+    <div class="container catalog">
+        <h1>Catalog:</h1>
+        <div class="catalog-assets">
+            <div class="catalog-show-policies"> 
+                <h1>Temperature</h1>
+                <div class="policies">
+                    <div class="policy-item">
+                        <p>Policy 1</p>
+                        <div class="info-icon">
+                            i
+                            <span class="tooltip">Weitere Informationen zu Policy 1</span>
+                        </div>
+                    </div>
+                    <div class="policy-item">
+                        <p>Policy 2</p>
+                        <div class="info-icon">
+                            i
+                            <span class="tooltip">Weitere Informationen zu Policy 2</span>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+            <div class="catalog-show-policies">
+                <h1>Voltage</h1>
+                <div class="policies">
+                    <div class="policy-item">
+                        <p>Policy 1</p>
+                        <div class="info-icon">
+                            i
+                            <span class="tooltip">Weitere Informationen zu Policy 1</span>
+                        </div>
+                    </div>
+                    <div class="policy-item">
+                        <p>Policy 2</p>
+                        <div class="info-icon">
+                            i
+                            <span class="tooltip">Weitere Informationen zu Policy 2</span>
+                        </div>
+                    </div>
+                    <div class="policy-item">
+                        <p>Policy 2</p>
+                        <div class="info-icon">
+                            i
+                            <span class="tooltip">Weitere Informationen zu Policy 3</span>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+            <div class="catalog-show-policies">
+                <h1>Current</h1>
+                <div class="policies">
+                    <div class="policy-item">
+                        <p>Policy 1</p>
+                        <div class="info-icon">
+                            i
+                            <span class="tooltip">Weitere Informationen zu Policy 1</span>
+                        </div>
+                    </div>
+                    <div class="policy-item">
+                        <p>Policy 2</p>
+                        <div class="info-icon">
+                            i
+                            <span class="tooltip">Weitere Informationen zu Policy 2</span>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </div>
+    <div class="show-assets">
+        <div class="container assets">
+            <div class="show-values-headline">
+                <h2>Temperature</h2>
+                <input type="checkbox" id="provider-data1" class="provider-data" checked>
+            </div>
+            <div class="show-values" id="asset-data1">
+
+            </div>
+        </div>
+        <div class="container assets">
+            <div class="show-values-headline">
+                <h2>Voltage</h2>
+                <input type="checkbox" id="provider-data2" class="provider-data" checked>
+            </div>
+            <div class="show-values" id="asset-data2">
+
+            </div>
+        </div>
+        <div class="container assets">
+            <div class="show-values-headline">
+                <h2>Current</h2>
+                <input type="checkbox" id="provider-data3" class="provider-data" checked>
+            </div>
+            <div class="show-values" id="asset-data3">
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>

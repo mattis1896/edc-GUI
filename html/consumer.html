@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EDC-Demonstrator</title>
+    <link rel="stylesheet" href="../css/consumer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/x-icon" href="../pictures/WAGO_W.png">
+</head>
+<script src="../js/consumer.js" defer></script>
+<body>
+    <div class="navbar">
+        <a href="https://www.wago.com/de/" id="WAGO-logo">
+            <img src="../pictures/WAGO_logo.png" alt="logo">
+        </a>
+        <a href="configuration.html" id="tab-configuration">Configuration</a>
+        <a href="provider.html" id="tab-provider">Provider</a>
+        <a href="#" id="tab-consumer">Consumer</a>
+    </div>
+    <div class="navbar-consumer">
+        <a href="#" id="tab-consumer1" onclick="loadConsumer(1)">Consumer 1</a>
+        <a href="#" id="tab-consumer2" onclick="loadConsumer(2)">Consumer 2</a>
+        <a href="#" id="tab-consumer3" onclick="loadConsumer(3)">Consumer 3</a>
+        <span id="show-consumer-address"></span>
+    </div>
+    <div class="consumer">
+        <div class="consumer-left">
+            <div class="container">
+                <div class="headline">
+                    <h3>Select the data to be displayed</h3>
+                </div>
+                <div class="select-data" id="data-selection">
+                    <!-- Dynamischer Inhalt -->
+                </div>
+            </div>
+            <div class="container">
+                <div class="headline">
+                    <h3>Policies</h3>
+                </div>
+                <div>
+                    <p>policy 1</p>
+                    <p>policy 2</p>
+                    <p>policy 3</p>
+                </div>
+            </div>
+            <div class="container">
+                <div class="headline">
+                    <h3>Contract</h3>
+                </div>
+                <div>
+                    <p>Contract information</p>
+                </div>
+            </div>
+        </div>
+        <div id="show-data" class="consumer-right">
+            <!-- Dynamische Datenanzeige -->
+        </div>
+    </div>
+</body>
+</html>

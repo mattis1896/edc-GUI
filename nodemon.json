@@ -1,0 +1,15 @@
+{
+    "watch": [
+      "server.js",
+      "html/",
+      "css/",
+      "js/",
+      "pictures/",
+      "daten/"
+    ],
+    "ext": "js,html,css,json",
+    "execMap": {
+      "js": "node server.js"
+    }
+  }
+  

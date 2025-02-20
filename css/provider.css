@@ -1,0 +1,142 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+.navbar {
+    display: flex;
+    background-color: #e0e0e0;
+    padding: 10px;
+    font-size: larger;
+}
+.navbar a {
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    border-radius: 8px;
+}
+.navbar a:hover {
+    background-color: #d0d0d0;
+}
+.navbar img {
+    height: 35px; /* Höhe des Bildes */
+    width: auto; /* Automatische Breite, damit das Seitenverhältnis erhalten bleibt */
+    margin-right: 20px;
+}
+.container {
+    margin: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+#tab-provider{
+    background-color: #EFF0F1;
+}
+.catalog {
+    display: flex;
+    align-items: center; /* Zentriert sie vertikal */
+    height: 80px;
+}
+
+.catalog-assets h1 {
+    margin: 10px; /* Entfernt den Standardabstand */
+    padding: 10px; /* Fügt etwas Innenabstand hinzu */
+}
+.catalog-assets{
+    display: flex;
+    justify-content: space-evenly; /* Verteilt die Elemente gleichmäßig */
+    align-items: center; /* Zentriert sie vertikal */
+    width: 100%;
+}
+.show-assets{
+    display: flex;
+    justify-content: space-evenly; /* Verteilt die Elemente gleichmäßig */
+    align-items: center; /* Zentriert sie vertikal */
+}
+.assets{
+    width: 30%;
+    text-align: center;
+}
+.show-values{
+    width: 100%;
+    height: 570px;
+    border: 1px solid #ccc;
+    overflow-y: scroll;
+    white-space: pre-wrap;
+    font-size: large;
+    background-color: #f9f9f9;
+    line-height: 150%;
+}
+#WAGO-logo{
+    background-color: #e0e0e0;
+    padding: 0px;
+}
+.show-values-headline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.provider-data {
+    position: absolute;
+    left: 0;
+}
+.catalog-show-policies{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.catalog-show-policies > *:last-child {
+    margin-left: 15px;
+}
+.policies {
+    font-family: Arial, sans-serif;
+    line-height: 0.4; /* Standard ist oft 1.5 – kleinerer Wert = engerer Text */
+}
+
+.policy-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0px;
+}
+
+.info-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: white;
+    color: black;
+    border: 1px solid rgb(0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+}
+
+.tooltip {
+    display: none;
+    position: absolute;
+    left: 30px; /* Abstand nach rechts */
+    top: -5px; /* Falls nötig, leicht anpassen */
+    background-color: white; /* Weißer Hintergrund */
+    color: black;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    border: 1px solid black;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Leichter Schatten */
+    z-index: 100; /* Damit es über anderen Elementen liegt */
+}
+
+.info-icon:hover .tooltip {
+    display: block;
+}
