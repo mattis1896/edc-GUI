@@ -246,9 +246,11 @@ function loadConsumer(consumerNumber) {
             </div>
         `;
         const consumerName = "consumer"+consumerNumber;
-        if(sharedData[consumerName] != ""){
+        if(sharedData[consumerName].length > 0){
+            document.getElementById("show-consumer-address").textContent = "";
             document.getElementById("show-consumer-address").textContent = "IP-Address: " + sharedData[consumerName];
         }else{
+            document.getElementById("show-consumer-address").textContent = "";
             document.getElementById("show-consumer-address").textContent = "No Consumer " + consumerNumber + " connected!";
         }
            

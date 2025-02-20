@@ -23,7 +23,8 @@
 // });
 
 const ws = new WebSocket("ws://localhost:3000");
-
+const textProvider = "provider";
+const textConsumer = "consumer";
 let input = null;
 
 const sharedData = {
@@ -43,12 +44,15 @@ ws.onmessage = (event) => {
 };
 ws.onclose = () => console.log("❌ Verbindung getrennt.");
 
-document.getElementById("send-command").addEventListener("click", () => {
-    const command = document.getElementById("command").value;
-    if (command) {
-        ws.send(command);
-    }
+window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("send-command")?.addEventListener("click", () => {
+        const command = document.getElementById("command").value;
+        if (command) {
+            ws.send(command);
+        }
+    });
 });
+
 
 
 function initializeTerminal(terminalContainerId) {
@@ -250,18 +254,18 @@ function toggleConnection(address, input, button){
 }
 
 function disconnectFromDevice(button){
-    sessionStorage.setItem(button.name, "No Consumer " + button.name.match(/\d+/) + " connected!");
+    sessionStorage.setItem(button.name, "");
 }
 
 function handleButtonClick(button){
     let address;
     switch(true){
-        case button.name.includes("consumer"):
+        case button.name.includes(textConsumer):
             input = document.getElementById(`${button.name}-address`);
             address = input.value;
             toggleConnection(address, input, button);
             break;
-        case button.name.includes("provider"):
+        case button.name.includes(textProvider):
             input = document.getElementById(`${button.name}-address`);
             address = input.value;
             toggleConnection(address, input, button);

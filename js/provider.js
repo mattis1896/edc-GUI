@@ -52,6 +52,7 @@ function handleCheckboxChange(checkbox){
 }
 
 async function loadJsonData(filePath, containerId, unit) {
+    console.log(`🔍 loadJsonData() wurde für ${filePath} aufgerufen!`);
     try {
         console.log(`Lade Datei: ${filePath}`);
 

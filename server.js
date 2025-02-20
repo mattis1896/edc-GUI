@@ -25,7 +25,8 @@ app.use(express.static(path.join(__dirname, "html")));
 app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
 app.use("/pictures", express.static(path.join(__dirname, "pictures"))); // Bilder-Ordner
-app.use("/daten", express.static(path.join(__dirname, "daten"))); // JSON-Ordner
+app.use("/daten", express.static(path.join(__dirname, "daten")));
+
 
 // WebSocket-Handling
 wss.on("connection", (ws) => {
