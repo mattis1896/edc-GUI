@@ -37,7 +37,7 @@ wss.on("connection", (ws) => {
         console.log(`📩 Befehl erhalten: ${command}`);
 
         if (!command) {
-            ws.send("⚠️ Fehler: Kein Befehl gesendet.");
+            ws.send("Fehler: Kein Befehl gesendet.");
             return;
         }
 
