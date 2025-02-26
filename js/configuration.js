@@ -37,12 +37,12 @@ const sharedData = {
 
 let term;
 
-ws.onopen = () => console.log("✅ Verbunden mit dem WebSocket-Server.");
+ws.onopen = () => console.log("Verbunden mit dem WebSocket-Server.");
 ws.onmessage = (event) => {
     document.getElementById("result").innerText = event.data;
     writeToTerminal(event.data);
 };
-ws.onclose = () => console.log("❌ Verbindung getrennt.");
+ws.onclose = () => console.log("Verbindung getrennt.");
 
 window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("send-command")?.addEventListener("click", () => {

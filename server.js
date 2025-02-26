@@ -34,7 +34,7 @@ wss.on("connection", (ws) => {
 
     ws.on("message", (message) => {
         const command = message.toString().trim(); // Buffer in String umwandeln
-        console.log(`📩 Befehl erhalten: ${command}`);
+        console.log(`Befehl erhalten: ${command}`);
 
         if (!command) {
             ws.send("Fehler: Kein Befehl gesendet.");
@@ -45,15 +45,15 @@ wss.on("connection", (ws) => {
         exec(command, (error, stdout, stderr) => {
             if (error) {
                 console.error(`❌ Fehler: ${error.message}`);
-                ws.send(`⚠️ Fehler: ${error.message}`);
+                ws.send(`Fehler: ${error.message}`);
                 return;
             }
             if (stderr) {
-                console.warn(`⚠️ stderr: ${stderr}`);
-                ws.send(`⚠️ stderr: ${stderr}`);
+                console.warn(`stderr: ${stderr}`);
+                ws.send(`stderr: ${stderr}`);
                 return;
             }
-            ws.send(`📡 Ergebnis:\n${stdout}`);
+            ws.send(`Ergebnis:\n${stdout}`);
         });
     });
 
@@ -67,5 +67,5 @@ app.get("/", (req, res) => {
 
 // Server starten
 server.listen(PORT, () => {
-    console.log(`🚀 Server läuft auf http://localhost:${PORT}`);
+    console.log(`Server läuft auf http://localhost:${PORT}`);
 });
