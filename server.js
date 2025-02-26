@@ -44,7 +44,7 @@ wss.on("connection", (ws) => {
         // Befehl ausführen
         exec(command, (error, stdout, stderr) => {
             if (error) {
-                console.error(`❌ Fehler: ${error.message}`);
+                console.error(`Fehler: ${error.message}`);
                 ws.send(`Fehler: ${error.message}`);
                 return;
             }
@@ -57,7 +57,7 @@ wss.on("connection", (ws) => {
         });
     });
 
-    ws.on("close", () => console.log("❌ Client hat die Verbindung geschlossen."));
+    ws.on("close", () => console.log("Client hat die Verbindung geschlossen."));
 });
 
 // Standardseite
