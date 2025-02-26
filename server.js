@@ -30,7 +30,7 @@ app.use("/daten", express.static(path.join(__dirname, "daten")));
 
 // WebSocket-Handling
 wss.on("connection", (ws) => {
-    console.log("✅ Ein Client hat sich verbunden.");
+    console.log("Ein Client hat sich verbunden.");
 
     ws.on("message", (message) => {
         const command = message.toString().trim(); // Buffer in String umwandeln
