@@ -244,6 +244,7 @@ function toggleConnection(address, input, button){
         writeToTerminal('connected to ' + button.name + " with adress: " + address);
         button.style.backgroundColor = "#6EC800";
         input.disabled = true;
+        connectToDevice(button);
     }else{
         disconnectFromDevice(button);
         console.log(button.name + " is disconnected");
@@ -253,6 +254,40 @@ function toggleConnection(address, input, button){
     }
 }
 
+function connectToDevice(button){
+    switch(true)
+    {
+        case button.name.includes(textConsumer):
+            connectToConsumer();
+            break;
+        case button.name.includes(textProvider):
+            connectToProvider();
+            break;
+    }
+}
+
+function connectToConsumer(){
+
+}
+
+function connectToProvider(){
+    createAssets();
+    createPolicies();
+    createContractDefinition();
+}
+
+function createAssets(){
+
+}
+
+function createPolicies(){
+
+}
+
+function createContractDefinition(){
+    
+}
+
 function disconnectFromDevice(button){
     sessionStorage.setItem(button.name, "");
 }
@@ -260,12 +295,7 @@ function disconnectFromDevice(button){
 function handleButtonClick(button){
     let address;
     switch(true){
-        case button.name.includes(textConsumer):
-            input = document.getElementById(`${button.name}-address`);
-            address = input.value;
-            toggleConnection(address, input, button);
-            break;
-        case button.name.includes(textProvider):
+        case button.name.includes(textConsumer) || button.name.includes(textProvider):
             input = document.getElementById(`${button.name}-address`);
             address = input.value;
             toggleConnection(address, input, button);
