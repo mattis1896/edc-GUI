@@ -267,13 +267,18 @@ function connectToDevice(button){
 }
 
 function connectToConsumer(){
-
+    startConsumer();
 }
 
 function connectToProvider(){
+    startProvider();
     createAssets();
     createPolicies();
     createContractDefinition();
+}
+
+function startProvider(){
+    sendCommand("./gradlew transfer:transfer-00-prerequisites:connector:build")
 }
 
 function createAssets(){
@@ -285,7 +290,7 @@ function createPolicies(){
 }
 
 function createContractDefinition(){
-    
+
 }
 
 function disconnectFromDevice(button){
