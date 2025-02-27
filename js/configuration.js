@@ -278,7 +278,8 @@ function connectToProvider(){
 }
 
 function startProvider(){
-    sendCommand("docker exec -it afcf8895b2e4 /bin/sh -c \"./gradlew transfer:transfer-00-prerequisites:connector:build\"")
+    sendCommand("docker exec -i afcf8895b2e4 /bin/sh -c \"./gradlew transfer:transfer-00-prerequisites:connector:build\"")
+    sendCommand("java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar")
 }
 
 function createAssets(){
