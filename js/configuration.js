@@ -278,7 +278,7 @@ function connectToProvider(){
 }
 
 function startProvider(){
-    sendCommand("./workspace/gradlew transfer:transfer-00-prerequisites:connector:build")
+    sendCommand("docker exec -it afcf8895b2e4 /bin/sh -c \"./gradlew transfer:transfer-00-prerequisites:connector:build\"")
 }
 
 function createAssets(){
