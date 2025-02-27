@@ -278,7 +278,7 @@ function connectToProvider(){
 }
 
 function startProvider(){
-    sendCommand("./gradlew transfer:transfer-00-prerequisites:connector:build")
+    sendCommand("./workspace/gradlew transfer:transfer-00-prerequisites:connector:build")
 }
 
 function createAssets(){
