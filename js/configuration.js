@@ -106,58 +106,23 @@ function sendCommand(command) {
     });
 }
 
-function sendCommandWithWait(command) {
-    return new Promise((resolve, reject) => {
-        if (!command) {
-            reject("Kein Befehl angegeben");
-            return;
-        }
+async function waitForProcessToStart() {
+    writeToTerminal("Warte auf den Start des Prozesses...");
 
-        ws.send(command);
-
-        ws.onmessage = async (event) => {
-            let responseText = event.data;
-            console.log("Hauptbefehl gesendet, warte auf Prozessstart...");
-            
-            try {
-                await waitForProcess("pgrep -f connector.jar");
-                resolve("Prozess erfolgreich gestartet!");
-            } catch (error) {
-                reject("Fehler beim Starten des Prozesses: " + error);
+    while (true) {
+        try {
+            const response = await sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"pgrep -f connector.jar\"");
+            if (response.trim()) {
+                writeToTerminal("Prozess läuft, weiter mit dem Skript...");
+                break; // Beenden, wenn der Prozess läuft
             }
-        };
-
-        ws.onerror = (error) => {
-            reject("Fehler beim Empfangen der Antwort: " + error);
-        };
-    });
-}
-
-function waitForProcess(checkCommand, interval = 3000, timeout = 60000) {
-    return new Promise((resolve, reject) => {
-        const startTime = Date.now();
-
-        function check() {
-            ws.send(checkCommand);
-
-            ws.onmessage = (event) => {
-                if (event.data.trim()) {
-                    resolve(true);
-                } else if (Date.now() - startTime > timeout) {
-                    reject("Timeout: Prozess nicht gestartet.");
-                } else {
-                    setTimeout(check, interval);
-                }
-            };
-
-            ws.onerror = (error) => {
-                reject("Fehler beim Überprüfen des Prozesses: " + error);
-            };
+        } catch (error) {
+            writeToTerminal("Fehler beim Überprüfen des Prozesses: " + error);
         }
-
-        check();
-    });
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Eine Sekunde warten
+    }
 }
+
 
 
 
@@ -352,10 +317,10 @@ async function startProvider() {
     writeToTerminal("Provider is starting...");
     
     try {
-        await sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "./gradlew transfer:transfer-00-prerequisites:connector:build" && docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
+        sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "./gradlew transfer:transfer-00-prerequisites:connector:build" && docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
         
         writeToTerminal("Warte auf Start des Prozesses...");
-        await waitForProcess(`docker exec -i 4fef7ff3dd49 /bin/sh -c "pgrep -f connector.jar"`);
+        waitForProcessToStart();
 
         writeToTerminal("Provider erfolgreich gestartet!");
     } catch (error) {
