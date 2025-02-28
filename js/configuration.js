@@ -39,10 +39,10 @@ const sharedData = {
 let term;
 
 ws.onopen = () => console.log("Verbunden mit dem WebSocket-Server.");
-ws.onmessage = (event) => {
-    document.getElementById("result").innerText = event.data;
-    //writeToTerminal(event.data);
-};
+// ws.onmessage = (event) => {
+//     document.getElementById("result").innerText = event.data;
+//     //writeToTerminal(event.data);
+// };
 ws.onclose = () => console.log("Verbindung getrennt.");
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -98,6 +98,7 @@ function sendCommand(command) {
         ws.onmessage = (event) => {
             responseText = event.data;
             resolve(responseText);
+            document.getElementById("result").innerText = event.data;
         };
 
         ws.onerror = (error) => {
@@ -319,7 +320,6 @@ async function startProvider() {
     try {
         sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "./gradlew transfer:transfer-00-prerequisites:connector:build" && docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
         
-        writeToTerminal("Warte auf Start des Prozesses...");
         waitForProcessToStart();
 
         writeToTerminal("Provider erfolgreich gestartet!");
