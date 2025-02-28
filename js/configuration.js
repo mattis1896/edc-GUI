@@ -110,19 +110,49 @@ function sendCommand(command) {
 async function waitForProcessToStart() {
     writeToTerminal("Warte auf den Start des Prozesses...");
 
+    // Endlosschleife, um alle 1 Sekunde den Prozessstatus zu überprüfen
     while (true) {
         try {
+            // Warten auf die Antwort von sendCommand
             const response = await sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"pgrep -f connector.jar\"");
+
+            // Überprüfen, ob der Prozess läuft
             if (response.trim()) {
-                writeToTerminal("Prozess läuft, weiter mit dem Skript...");
-                break; // Beenden, wenn der Prozess läuft
+                writeToTerminal("Prozess läuft, warte auf den Status 'AVAILABLE'...");
+                
+                // Warten, bis die gewünschte Zeile in den Logs erscheint
+                const logs = await getLogs(); // Holt die Logs, um nach der Zeile zu suchen
+
+                if (logs.includes("is now in state AVAILABLE")) {
+                    writeToTerminal("Prozess ist jetzt im Zustand 'AVAILABLE', weiter mit dem Skript...");
+                    break; // Beenden, wenn der Prozess im gewünschten Zustand ist
+                }
             }
         } catch (error) {
             writeToTerminal("Fehler beim Überprüfen des Prozesses: " + error);
         }
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Eine Sekunde warten
+
+        // Eine Sekunde warten, bevor der Befehl erneut ausgeführt wird
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 }
+
+// Hilfsfunktion, um Logs vom Docker-Container zu holen
+async function getLogs() {
+    return new Promise((resolve, reject) => {
+        ws.send("docker logs 4fef7ff3dd49");
+
+        ws.onmessage = (event) => {
+            const logs = event.data;
+            resolve(logs);
+        };
+
+        ws.onerror = (error) => {
+            reject("Fehler beim Abrufen der Logs: " + error);
+        };
+    });
+}
+
 
 
 
