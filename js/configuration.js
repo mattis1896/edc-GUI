@@ -110,22 +110,22 @@ function sendCommand(command) {
 async function waitForProcessToStart() {
     writeToTerminal("Warte auf den Start des Prozesses...");
 
-    // Endlosschleife, um alle 1 Sekunde den Prozessstatus zu überprüfen
+    // Wir prüfen alle 1 Sekunde, ob der Prozess läuft und ob die "AVAILABLE" Zeile auftaucht
     while (true) {
         try {
-            // Warten auf die Antwort von sendCommand
+            // Zuerst überprüfen, ob der Prozess überhaupt läuft
             const response = await sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"pgrep -f connector.jar\"");
 
-            // Überprüfen, ob der Prozess läuft
+            // Wenn eine Prozess-ID (PID) zurückgegeben wird, prüfen wir die Logs
             if (response.trim()) {
                 writeToTerminal("Prozess läuft, warte auf den Status 'AVAILABLE'...");
-                
-                // Warten, bis die gewünschte Zeile in den Logs erscheint
-                const logs = await getLogs(); // Holt die Logs, um nach der Zeile zu suchen
 
-                if (logs.includes("is now in state AVAILABLE")) {
+                // Eine Funktion, die kontinuierlich die Logs prüft
+                const logsFound = await checkLogsForAvailable();
+                
+                if (logsFound) {
                     writeToTerminal("Prozess ist jetzt im Zustand 'AVAILABLE', weiter mit dem Skript...");
-                    break; // Beenden, wenn der Prozess im gewünschten Zustand ist
+                    break; // Wenn 'AVAILABLE' gefunden, fortfahren
                 }
             }
         } catch (error) {
@@ -137,14 +137,32 @@ async function waitForProcessToStart() {
     }
 }
 
+// Funktion, die kontinuierlich die Logs überprüft
+async function checkLogsForAvailable() {
+    return new Promise((resolve, reject) => {
+        let intervalId = setInterval(async () => {
+            try {
+                const logs = await getLogs(); // Logs abrufen
+                if (logs.includes("is now in state AVAILABLE")) {
+                    clearInterval(intervalId); // Stoppen, wenn die Zeile gefunden wurde
+                    resolve(true);
+                }
+            } catch (error) {
+                clearInterval(intervalId); // Stoppen bei Fehler
+                reject("Fehler beim Abrufen der Logs: " + error);
+            }
+        }, 1000); // Alle 1 Sekunde nach Logs suchen
+    });
+}
+
 // Hilfsfunktion, um Logs vom Docker-Container zu holen
 async function getLogs() {
     return new Promise((resolve, reject) => {
-        ws.send("docker logs 4fef7ff3dd49");
+        ws.send("docker logs 4fef7ff3dd49"); // Log-Befehl für den Container
 
         ws.onmessage = (event) => {
             const logs = event.data;
-            resolve(logs);
+            resolve(logs); // Logs zurückgeben
         };
 
         ws.onerror = (error) => {
@@ -152,6 +170,7 @@ async function getLogs() {
         };
     });
 }
+
 
 
 
