@@ -278,6 +278,7 @@ function connectToProvider(){
 }
 
 function startProvider(){
+    writeToTerminal("Provider is started");
     sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"./gradlew transfer:transfer-00-prerequisites:connector:build\" && docker exec -i 4fef7ff3dd49 /bin/sh -c \"java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar\"")
 }
 
@@ -295,6 +296,9 @@ function createContractDefinition(){
 
 function disconnectFromDevice(button){
     sessionStorage.setItem(button.name, "");
+    writeToTerminal(button.name + "has beend stopped");
+    sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"pkill -f connector.jar\"");
+
 }
 
 function handleButtonClick(button){
