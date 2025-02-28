@@ -40,7 +40,7 @@ let term;
 ws.onopen = () => console.log("Verbunden mit dem WebSocket-Server.");
 ws.onmessage = (event) => {
     document.getElementById("result").innerText = event.data;
-    writeToTerminal(event.data);
+    //writeToTerminal(event.data);
 };
 ws.onclose = () => console.log("Verbindung getrennt.");
 
@@ -283,7 +283,7 @@ function startProvider(){
 }
 
 function createAssets(){
-
+    sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"curl -d @transfer/transfer-01-negotiation/resources/create-asset.json   -H 'content-type: application/json' http://localhost:19193/management/v3/assets\"");
 }
 
 function createPolicies(){
@@ -296,7 +296,7 @@ function createContractDefinition(){
 
 function disconnectFromDevice(button){
     sessionStorage.setItem(button.name, "");
-    writeToTerminal(button.name + "has beend stopped");
+    writeToTerminal(button.name + " has beend stopped");
     sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"pkill -f connector.jar\"");
 
 }
