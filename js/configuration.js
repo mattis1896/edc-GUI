@@ -107,35 +107,27 @@ function sendCommand(command) {
     });
 }
 
-async function waitForProcessToStart() {
-    writeToTerminal("Warte auf den Start des Prozesses...");
+async function waitForProviderAvailable() {
+    writeToTerminal("Warte auf den Status 'UP' vom Provider...");
 
-    // Wir prüfen alle 1 Sekunde, ob der Prozess läuft und ob die "AVAILABLE" Zeile auftaucht
     while (true) {
         try {
-            // Zuerst überprüfen, ob der Prozess überhaupt läuft
-            const response = await sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"pgrep -f connector.jar\"");
+            const response = await sendCommand(
+                'docker exec -i 4fef7ff3dd49 /bin/sh -c "curl -s -X GET http://localhost:9191/management/health"'
+            );
 
-            // Wenn eine Prozess-ID (PID) zurückgegeben wird, prüfen wir die Logs
-            if (response.trim()) {
-                writeToTerminal("Prozess läuft, warte auf den Status 'AVAILABLE'...");
-
-                // Eine Funktion, die kontinuierlich die Logs prüft
-                const logsFound = await checkLogsForAvailable();
-                
-                if (logsFound) {
-                    writeToTerminal("Prozess ist jetzt im Zustand 'AVAILABLE', weiter mit dem Skript...");
-                    break; // Wenn 'AVAILABLE' gefunden, fortfahren
-                }
+            if (response.includes('"status":"UP"')) {
+                writeToTerminal("Provider ist jetzt verfügbar, weiter mit dem Skript...");
+                break; // Beenden, wenn der Connector verfügbar ist
             }
         } catch (error) {
-            writeToTerminal("Fehler beim Überprüfen des Prozesses: " + error);
+            writeToTerminal("Fehler beim Überprüfen des Providers: " + error);
         }
 
-        // Eine Sekunde warten, bevor der Befehl erneut ausgeführt wird
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 1 Sekunde warten
     }
 }
+
 
 // Funktion, die kontinuierlich die Logs überprüft
 async function checkLogsForAvailable() {
@@ -369,7 +361,7 @@ async function startProvider() {
     try {
         sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "./gradlew transfer:transfer-00-prerequisites:connector:build" && docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
         
-        waitForProcessToStart();
+        waitForProviderAvailable();
 
         writeToTerminal("Provider erfolgreich gestartet!");
     } catch (error) {
