@@ -355,7 +355,7 @@ async function startProvider() {
         await sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "./gradlew transfer:transfer-00-prerequisites:connector:build" && docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
         
         writeToTerminal("Warte auf Start des Prozesses...");
-        await waitForProcess("pgrep -f connector.jar");
+        await waitForProcess(`docker exec -i 4fef7ff3dd49 /bin/sh -c "pgrep -f connector.jar"`);
 
         writeToTerminal("Provider erfolgreich gestartet!");
     } catch (error) {
