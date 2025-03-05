@@ -1,26 +1,4 @@
-// // WebSocket-Verbindung herstellen
-// const socket = new WebSocket('ws://localhost:3000');
 
-// // Wenn der WebSocket geöffnet wird
-// socket.onopen = () => {
-//   console.log('Verbindung zum Server hergestellt');
-// };
-
-// // Wenn der WebSocket eine Nachricht empfängt (Ergebnis des Pings)
-// socket.onmessage = (event) => {
-//     document.getElementById('result').innerHTML = event.data.replace(/\n/g, "<br>");
-// };
-
-// // Wenn der WebSocket geschlossen wird
-// socket.onclose = () => {
-//   console.log('Verbindung zum Server geschlossen');
-// };
-
-// // Wenn der Benutzer auf den Button klickt, sende eine Nachricht an den Server
-// document.getElementById('pingButton').addEventListener('click', () => {
-//   // Sende "ping" mit der IP-Adresse an den WebSocket-Server
-//   socket.send('ping 192.168.2.17'); // IP-Adresse hier anpassen
-// });
 
 const ws = new WebSocket("ws://localhost:3000");
 const textProvider = "provider";

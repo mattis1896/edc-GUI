@@ -3,18 +3,11 @@ const path = require("path");
 const http = require("http");
 const WebSocket = require("ws");
 const { exec } = require("child_process");
-const livereload = require("livereload");
-const connectLivereload = require("connect-livereload");
 
 const app = express();
 const PORT = 3000;
 
-// Live-Reload-Server starten
-const liveReloadServer = livereload.createServer({
-    exts: ["html", "css", "js"]
-});
-liveReloadServer.watch(__dirname);
-app.use(connectLivereload());
+
 
 // HTTP-Server erstellen
 const server = http.createServer(app);
