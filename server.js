@@ -58,6 +58,10 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "html", "configuration.html"));
 });
 
+app.get("/api/host-ip", (req, res) => {
+    res.json({ hostIp: process.env.HOST_IP });
+});
+
 // Server starten
 server.listen(PORT, () => {
     console.log(`Server läuft auf http://localhost:${PORT}`);

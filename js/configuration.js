@@ -5,6 +5,7 @@ const textProvider = "provider";
 const textConsumer = "consumer";
 let input = null;
 let responseText = null;
+let hostIP = null;
 
 const sharedData = {
     consumer1: sessionStorage.getItem("consumer1") || "",
@@ -91,7 +92,7 @@ async function waitForProviderAvailable() {
     while (true) {
         try {
             const response = await sendCommand(
-                'docker exec -i 4fef7ff3dd49 /bin/sh -c "curl -s -X GET http://localhost:9191/management/health"'
+                'docker exec -i 4fef7ff3dd49 /bin/sh -c "curl -s -X GET http://localhost:19191/management/health"'
             );
 
             if (response.includes('"status":"UP"')) {
@@ -106,6 +107,21 @@ async function waitForProviderAvailable() {
     }
 }
 
+async function getHostIp() {
+    try {
+      const response = await fetch('/api/host-ip');
+      if (!response.ok) {
+        throw new Error('Netzwerkfehler: ' + response.status);
+      }
+      const data = await response.json();
+      const hostIp = data.hostIp; // Speichern in einer Variable
+      console.log(hostIp);
+      hostIP =  hostIp; // Rückgabe der Variable
+    } catch (error) {
+      console.error('Fehler beim Abrufen der Host-IP:', error);
+      return null;
+    }
+  }
 
 // Funktion, die kontinuierlich die Logs überprüft
 async function checkLogsForAvailable() {
@@ -157,7 +173,7 @@ if (document.getElementById('terminal-container')) {
 // functions
 
 
-function loadConfiguration() {
+async function loadConfiguration() {
     if (window.location.pathname.includes("configuration.html")) {
         restorePageStructure();  // Dynamische Elemente (z. B. Consumers) wiederherstellen
         restoreValues();         // Eingaben & Checkboxen wiederherstellen
@@ -175,6 +191,8 @@ function loadConfiguration() {
         });
 
         reattachEvents(); // Events erneut setzen
+        await getHostIp();
+        console.log(hostIP);
     }
 }
 
