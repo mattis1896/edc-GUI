@@ -1,11 +1,14 @@
 
-
 const ws = new WebSocket("ws://localhost:3000");
 const textProvider = "provider";
 const textConsumer = "consumer";
 let input = null;
 let responseText = null;
 let hostIP = null;
+let contractNegotiationId = null;
+let contractAgreementId = null;
+let transferProcessId = null;
+let authorizationKey = null;
 
 const sharedData = {
     consumer1: sessionStorage.getItem("consumer1") || "",
@@ -340,47 +343,370 @@ function connectToDevice(button){
     }
 }
 
-function connectToConsumer(){
-    startConsumer();
+async function connectToConsumer(){
+    await startConsumer();
+    await fetchCatalog();
+    await negotiateContract();
+    await gettingContractAgreementID();
+    await startTransfer();
+    await checkTransferStatus();
+    await getAuthorizationKey();
+    await getData();
 }
 
-function connectToProvider(){
-    startProvider();
-    createAssets();
-    createPolicies();
-    createContractDefinition();
+async function startConsumer(){
+    writeToTerminal("Consumer wird gestartet...");
+    
+    try {
+        // Starte den Provider (achte darauf, dass sendCommand hier asynchron arbeitet)
+        sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
+        
+        writeToTerminal("Consumer erfolgreich gestartet!");
+    } catch (error) {
+        writeToTerminal("Fehler beim Starten des Providers: " + error);
+        throw error; // Wir werfen den Fehler, damit connectToProvider damit umgehen kann
+    }
+}
+
+async function fetchCatalog(){
+    writeToTerminal("Fetch catalog...");
+    
+    while (true) {
+        try {
+            const response = await sendCommand(
+                `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -X POST "http://localhost:29193/management/v3/catalog/request" -H 'Content-Type: application/json' -d @transfer/transfer-01-negotiation/resources/fetch-catalog.json -s"`
+            );
+            
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                writeToTerminal("Erfolgreiche Antwort erhalten, Asset erstellt.");
+                const regex = /"odrl:hasPolicy":\s*{\s*"@id":\s*"([A-Za-z0-9\+=/:_-]+)"/;
+                const match = response.match(regex);
+                if (match && match[1]) {
+                    const policyId = match[1];
+                    const command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "jq --arg new_id '${policyId}' '.policy[\\\"@id\\\"] = \\$new_id' transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json && echo DONE"`;
+
+                    sendCommand(command)
+                        .then(response => console.log("Antwort vom Server:", response))
+                        .catch(error => console.error("Fehler:", error));
+
+
+                    console.log(`Policy ID: ${policyId}`);
+                    writeToTerminal(policyId);
+                } else {
+                    writeToTerminal('Kein Policy ID gefunden.');
+                }
+                
+                
+                break; // Schleife beenden
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            }
+        } catch (error) {
+            writeToTerminal("Fehler beim fetchen des Katalogs: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
+}
+
+async function negotiateContract(){
+    writeToTerminal("Verhandle Vertrag...");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    while (true) {
+        try {
+            const response = await sendCommand(
+                `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -d @transfer/transfer-01-negotiation/resources/negotiate-contract.json -X POST -H 'content-type: application/json' http://localhost:29193/management/v3/contractnegotiations -s"`
+            );
+            
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                writeToTerminal("Erfolgreiche Antwort erhalten, Vertrag verhandelt.");
+                
+                const regex = /"@id":\s*"([a-fA-F0-9\-]{36})"/;
+                const match = response.match(regex);
+                writeToTerminal(response);
+                if (match && match[1]) {
+                    contractNegotiationId = match[1];
+                    writeToTerminal(contractNegotiationId);
+                }
+                break; // Schleife beenden
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            }
+        } catch (error) {
+            writeToTerminal("Fehler beim verhandeln des Vertrags: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
+}
+
+async function gettingContractAgreementID(){
+    writeToTerminal("Get contractAgreementID...");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    while (true) {
+        try {
+            const command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -X GET 'http://localhost:29193/management/v3/contractnegotiations/${contractNegotiationId}' --header 'Content-Type: application/json' -s | jq"`;
+            const response = await sendCommand(command);
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                writeToTerminal("Erfolgreiche Antwort erhalten, ID erhalten.");
+                const regex = /"contractAgreementId":\s*"([a-fA-F0-9\-]{36})"/;
+                const match = response.match(regex);
+                if (match && match[1]) {
+                    contractAgreementId = match[1];
+                    writeToTerminal(contractAgreementId);
+                }
+                break; // Schleife beenden
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            }
+        } catch (error) {
+            writeToTerminal("Fehler beim verhandeln des Vertrags: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
+}
+
+async function startTransfer(){
+    const command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "jq --arg new_id '${contractAgreementId}' '.contractId = \\$new_id' transfer/transfer-02-consumer-pull/resources/start-transfer.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-02-consumer-pull/resources/start-transfer.json && echo DONE"`;
+
+    sendCommand(command)
+        .then(response => console.log("Antwort vom Server:", response))
+        .catch(error => console.error("Fehler:", error));
+    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    while (true) {
+        try {
+            const command = `docker exec -i 4fef7ff3dd49 /bin/bash -c 'curl -X POST "http://localhost:29193/management/v3/transferprocesses" -H "Content-Type: application/json" -d @transfer/transfer-02-consumer-pull/resources/start-transfer.json -s | jq'`;
+
+            const response = await sendCommand(command);
+            //Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                writeToTerminal("Erfolgreiche Antwort erhalten, Transfer gestartet.");
+                const regex = /"@id":\s*"([a-f0-9\-]{36})"/;
+                const match = response.match(regex);
+                if (match && match[1]) {
+                    transferProcessId = match[1];
+                    writeToTerminal("transferprocessid: " + transferProcessId);
+                }
+                break; // Schleife beenden
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            }
+            break;
+        } catch (error) {
+            writeToTerminal("Fehler beim start des Transfers: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
+}
+
+async function checkTransferStatus(){
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    while (true) {
+        try {
+            const command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -s 'http://localhost:29193/management/v3/transferprocesses/${transferProcessId}'"`;
+
+            const response = await sendCommand(command);
+            writeToTerminal(response);
+
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                
+                const regex = /"state":\s*"([A-Z]+)"/;
+                const match = response.match(regex);
+
+                if (match && match[1]) {
+                    const transferState = match[1];
+                    writeToTerminal(`Status: ${transferState}`);
+
+                    if (transferState === "STARTED") {
+                        writeToTerminal("Transfer erfolgreich gestartet!");
+                        break; // Beendet die Schleife
+                    }
+                }
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+                break;
+        } catch (error) {
+            writeToTerminal("Fehler beim verhandeln des Vertrags: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
+}
+
+async function getAuthorizationKey(){
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    while (true) {
+        try {
+            const command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -s 'http://localhost:29193/management/v3/edrs/${transferProcessId}/dataaddress' | jq"`;  
+
+
+            const response = await sendCommand(command);
+            writeToTerminal(response);
+
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                
+                const regex = /"authorization":\s*"([A-Za-z0-9._-]+)"/;
+                const match = response.match(regex);
+
+                if (match && match[1]) {
+                    authorizationKey = match[1];
+                    writeToTerminal(authorizationKey);
+                    
+                }
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+                break;
+        } catch (error) {
+            writeToTerminal("Fehler beim verhandeln des Vertrags: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
+}
+
+async function getData(){
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    while (true) {
+        try {
+            const command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -s -X GET 'http://localhost:19291/public/1' -H 'Authorization: ${authorizationKey}'"`;  
+
+
+
+            const response = await sendCommand(command);
+            writeToTerminal(response);
+
+            break;
+        } catch (error) {
+            writeToTerminal("Fehler beim verhandeln des Vertrags: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
+}
+
+async function connectToProvider() {
+    try {
+        // Starte den Provider und warte darauf, dass er erfolgreich gestartet wird
+        await startProvider();
+        
+        // Warte auf die erfolgreiche Erstellung der Assets
+        await createAssets();
+        
+        // Optional: Hier kannst du die nächsten Schritte hinzufügen, die nach der Asset-Erstellung ausgeführt werden sollen
+        await createPolicies();
+        await createContractDefinition();
+        
+        writeToTerminal("Provider successfully started");
+    } catch (error) {
+        writeToTerminal("Fehler beim Ausführen der Schritte: " + error);
+    }
 }
 
 async function startProvider() {
-    writeToTerminal("Provider is starting...");
+    writeToTerminal("Provider wird gestartet...");
     
     try {
-        sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "./gradlew transfer:transfer-00-prerequisites:connector:build" && docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
+        // Starte den Provider (achte darauf, dass sendCommand hier asynchron arbeitet)
+        sendCommand(`docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`);
         
-        waitForProviderAvailable();
-
         writeToTerminal("Provider erfolgreich gestartet!");
     } catch (error) {
         writeToTerminal("Fehler beim Starten des Providers: " + error);
+        throw error; // Wir werfen den Fehler, damit connectToProvider damit umgehen kann
+    }
+}
+
+async function createAssets() {
+    writeToTerminal("Starte Asset-Erstellung...");
+    
+    while (true) {
+        try {
+            const response = await sendCommand(
+                `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl --data-binary @transfer/transfer-01-negotiation/resources/create-asset.json -H 'Content-Type: application/json' http://localhost:19193/management/v3/assets -s"`
+            );
+            
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                writeToTerminal("Erfolgreiche Antwort erhalten, Asset erstellt.");
+                writeToTerminal(response);
+                break; // Schleife beenden
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            }
+        } catch (error) {
+            writeToTerminal("Fehler beim Erstellen der Assets: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
     }
 }
 
 
-function createAssets(){
-    //sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"curl -d @transfer/transfer-01-negotiation/resources/create-asset.json   -H 'content-type: application/json' http://localhost:19193/management/v3/assets\"");
-    sendCommand("docker exec -i 4fef7ff3dd49 /bin/sh -c \"curl -d @transfer/transfer-01-negotiation/resources/create-asset.json   -H 'content-type: application/json' http://localhost:19193/management/v3/assets\"").then(response => {
-        console.log("Antwort erhalten:", response);
-        }).catch(error => {
-            console.error(error);
-    });
+function processResponse(response) {
+    // Hier kannst du die Response weiterverarbeiten
+    writeToTerminal("Response verarbeitet: " + response);
 }
 
-function createPolicies(){
-
+async function createPolicies(){
+    writeToTerminal("Starte Policy-Erstellung...");
+    
+    while (true) {
+        try {
+            const response = await sendCommand(
+                `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl --data-binary @transfer/transfer-01-negotiation/resources/create-policy.json -H 'content-type: application/json' http://localhost:19193/management/v3/policydefinitions -s"`
+            );
+            
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                writeToTerminal("Erfolgreiche Antwort erhalten, Policy erstellt.");
+                writeToTerminal(response);
+                break; // Schleife beenden
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            }
+        } catch (error) {
+            writeToTerminal("Fehler beim Erstellen der Assets: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
 }
 
-function createContractDefinition(){
-
+async function createContractDefinition(){
+    writeToTerminal("Starte Vetrag-Erstellung...");
+    
+    while (true) {
+        try {
+            const response = await sendCommand(
+                `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -d @transfer/transfer-01-negotiation/resources/create-contract-definition.json -H 'content-type: application/json' http://localhost:19193/management/v3/contractdefinitions -s"`
+            );
+            
+            // Überprüfen, ob die Antwort gültig ist
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+                writeToTerminal("Erfolgreiche Antwort erhalten, Vertrag erstellt.");
+                writeToTerminal(response);
+                break; // Schleife beenden
+            } else {
+                writeToTerminal("Keine gültige Antwort erhalten, erneut versuchen...");
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            }
+        } catch (error) {
+            writeToTerminal("Fehler beim Erstellen der Assets: " + error);
+            throw error; // Fehler werfen, damit connectToProvider damit umgehen kann
+        }
+    }
 }
 
 function disconnectFromDevice(button){
