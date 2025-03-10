@@ -81,7 +81,7 @@
 
 // Standardmäßig Consumer 1 laden
 
-const sharedData = {
+const actorIpAdress = {
     consumer1: sessionStorage.getItem("consumer1") || "",
     consumer2: sessionStorage.getItem("consumer2") || "",
     consumer3: sessionStorage.getItem("consumer3") || "",
@@ -246,9 +246,9 @@ function loadConsumer(consumerNumber) {
             </div>
         `;
         const consumerName = "consumer"+consumerNumber;
-        if(sharedData[consumerName].length > 0){
+        if(actorIpAdress[consumerName].length > 0){
             document.getElementById("show-consumer-address").textContent = "";
-            document.getElementById("show-consumer-address").textContent = "IP-Address: " + sharedData[consumerName];
+            document.getElementById("show-consumer-address").textContent = "IP-Address: " + actorIpAdress[consumerName];
         }else{
             document.getElementById("show-consumer-address").textContent = "";
             document.getElementById("show-consumer-address").textContent = "No Consumer " + consumerNumber + " connected!";

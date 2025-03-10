@@ -1,7 +1,7 @@
 
 import { updateSharedVariable } from './configuration.js';
 
-const sharedData = {
+const actorIpAdress = {
     consumer1: sessionStorage.getItem("consumer1") || "",
     consumer2: sessionStorage.getItem("consumer2") || "",
     consumer3: sessionStorage.getItem("consumer3") || "",
@@ -140,4 +140,4 @@ function loadProvider() {
     // currentData.innerHTML = '<p>Current Data 1</p><p>Current Data 2</p>';
 }
 
-console.log(sharedData);
+console.log(actorIpAdress);
