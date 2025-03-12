@@ -9,6 +9,12 @@ let contractNegotiationId = null;
 let contractAgreementId = null;
 let transferProcessId = null;
 let authorizationKey = null;
+//let countConsumer = 0;
+
+// Vorübergehende Variablen
+// let containerIDPC = ba84a752440c;
+// let containerIDPFC = ;
+// let containerIDEDGE = ;
 
 const actorIpAdress = {
     consumer1: sessionStorage.getItem("consumer1") || "",
@@ -138,6 +144,12 @@ if (document.getElementById('terminal-container')) {
 
 async function loadConfiguration() {
     if (window.location.pathname.includes("configuration.html")) {
+        
+        if (sessionStorage.getItem('countConsumer') === null) {
+            // Wenn es noch nicht existiert, setze es auf 1
+            sessionStorage.setItem('countConsumer', 1);
+        }
+
         restorePageStructure();  // Dynamische Elemente (z. B. Consumers) wiederherstellen
         restoreValues();         // Eingaben & Checkboxen wiederherstellen
         restoreTerminalLogs();
@@ -319,8 +331,8 @@ function askForSshPassword(button) {
 async function connectToConsumer(button){
     await startConsumer(button);
     await fetchCatalog(button);
-    await negotiateContract(button);
-    await gettingContractAgreementID(button);
+    // await negotiateContract(button);
+    // await gettingContractAgreementID(button);
     // await startTransfer(button);
     // await checkTransferStatus(button);
     // await getAuthorizationKey(button);
@@ -341,11 +353,11 @@ async function startConsumer(button){
         let command = null;
         // Starte den Consumer 
         if(isLocalHost(button)){
-            command = `docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`;
+            command = `docker exec -i ba84a752440c /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`;
         }else{
             askForSshPassword(button);
             await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
-            command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i 674b02b6b54c /bin/sh -c \\\"java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
+            command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i ccd6c7aff556 /bin/sh -c \\\"java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
             writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
         }
         
@@ -365,10 +377,10 @@ async function fetchCatalog(button){
         try {
             let command = null;
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -X POST "http://localhost:29193/management/v3/catalog/request" -H 'Content-Type: application/json' -d @transfer/transfer-01-negotiation/resources/fetch-catalog.json -s"`;
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -X POST "http://localhost:29193/management/v3/catalog/request" -H 'Content-Type: application/json' -d @transfer/transfer-01-negotiation/resources/fetch-catalog.json -s"`;
             }else{
                 await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
-                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'curl -X POST \\\\\\"http://localhost:29193/management/v3/catalog/request\\\\\\" -H \\\\\\"Content-Type: application/json\\\\\\" -d @transfer/transfer-01-negotiation/resources/fetch-catalog.json -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -X POST \\\\\\"http://localhost:29193/management/v3/catalog/request\\\\\\" -H \\\\\\"Content-Type: application/json\\\\\\" -d @transfer/transfer-01-negotiation/resources/fetch-catalog.json -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
  
             }
 
@@ -376,7 +388,7 @@ async function fetchCatalog(button){
             await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
             writeToTerminal(response);
             // Überprüfen, ob die Antwort gültig ist
-            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error") && response.toLowerCase().includes("@id")) {
                 writeToTerminal("Erfolgreiche Antwort erhalten, Katalog wird geholt");
                 const regex = /"odrl:hasPolicy":\s*{\s*"@id":\s*"([A-Za-z0-9\+=/:_-]+)"/;
                 const match = response.match(regex);
@@ -384,11 +396,12 @@ async function fetchCatalog(button){
                     const policyId = match[1];
 
                     if(isLocalHost(button)){
-                        command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "jq --arg new_id '${policyId}' '.policy[\\\"@id\\\"] = \\$new_id' transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json && echo DONE"`; 
+                        command = `docker exec -i ba84a752440c /bin/bash -c "jq --arg new_id '${policyId}' '.policy[\\\"@id\\\"] = \\$new_id' transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json && echo DONE"`; 
                     }else{
-                        command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'jq --arg new_id \\\\\\"${policyId}\\\\\\" \\' .policy[\\\\\\"@id\\\\\\"] = \\$new_id' transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json && echo DONE'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                        writeToTerminal("Policy ID: " + policyId);
+                        command = `expect -c 'spawn ssh root@192.168.2.18 "docker exec -i ccd6c7aff556 /bin/sh -c \\"jq --arg new_id \\"Test\\" \\".policy[\\\"@id\\\"] = \\\"$new_id\\\"\\\" transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json\\""; expect \\"password:\\"; send \\"wago\\r\\"; interact'`;
 
-                        writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
+                        writeToTerminal("Policy ID in Datei schreiben...");
                     }
 
                     sendCommand(command)
@@ -397,7 +410,7 @@ async function fetchCatalog(button){
 
 
                     console.log(`Policy ID: ${policyId}`);
-                    writeToTerminal(policyId);
+                    writeToTerminal("Befehl: " + command)
                 } else {
                     writeToTerminal('Kein Katalog gefunden.');
                 }
@@ -423,10 +436,10 @@ async function negotiateContract(button){
             
             let command = null;
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -d @transfer/transfer-01-negotiation/resources/negotiate-contract.json -X POST -H 'content-type: application/json' http://localhost:29193/management/v3/contractnegotiations -s"`;
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -d @transfer/transfer-01-negotiation/resources/negotiate-contract.json -X POST -H 'content-type: application/json' http://localhost:29193/management/v3/contractnegotiations -s"`;
             }else{
                 await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
-                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'curl -d @transfer/transfer-01-negotiation/resources/negotiate-contract.json -X POST -H \\\\\\"content-type: application/json\\\\\\" http://localhost:29193/management/v3/contractnegotiations -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -d @transfer/transfer-01-negotiation/resources/negotiate-contract.json -X POST -H \\\\\\"content-type: application/json\\\\\\" http://localhost:29193/management/v3/contractnegotiations -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
             }
 
@@ -462,11 +475,10 @@ async function gettingContractAgreementID(button){
         try {
             let command = null;
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -X GET 'http://localhost:29193/management/v3/contractnegotiations/${contractNegotiationId}' --header 'Content-Type: application/json' -s | jq"`;
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -X GET 'http://localhost:29193/management/v3/contractnegotiations/${contractNegotiationId}' --header 'Content-Type: application/json' -s | jq"`;
             }else{
-                askForSshPassword(button);
                 await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
-                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'curl -X GET \\\\\\"http://localhost:29193/management/v3/contractnegotiations/${contractNegotiationId}\\\\\\" --header \\\\\\"Content-Type: application/json\\\\\\" -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -X GET \\\\\\"http://localhost:29193/management/v3/contractnegotiations/${contractNegotiationId}\\\\\\" --header \\\\\\"Content-Type: application/json\\\\\\" -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
             }
                 
@@ -478,7 +490,7 @@ async function gettingContractAgreementID(button){
                 const match = response.match(regex);
                 if (match && match[1]) {
                     contractAgreementId = match[1];
-                    writeToTerminal(contractAgreementId);
+                    writeToTerminal("ContractAgreementID: "+contractAgreementId);
                 }
                 break; // Schleife beenden
             } else {
@@ -496,11 +508,11 @@ async function startTransfer(button){
     let command = null;
 
     if(isLocalHost(button)){
-        command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "jq --arg new_id '${contractAgreementId}' '.contractId = \\$new_id' transfer/transfer-02-consumer-pull/resources/start-transfer.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-02-consumer-pull/resources/start-transfer.json && echo DONE"`;
+        command = `docker exec -i ba84a752440c /bin/bash -c "jq --arg new_id '${contractAgreementId}' '.contractId = \\$new_id' transfer/transfer-02-consumer-pull/resources/start-transfer.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-02-consumer-pull/resources/start-transfer.json && echo DONE"`;
     }else{
-        command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'jq --arg new_id \\\\\\"${contractAgreementId}\\\\\\" \\' .contractId = \\$new_id' transfer/transfer-02-consumer-pull/resources/start-transfer.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-02-consumer-pull/resources/start-transfer.json && echo DONE'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
-
-        writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
+        command= `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'jq --arg new_id \\\\\\"${contractAgreementId}\\\\\\" \\\\\\\".contractId = \\\\\\$new_id\\\\\\\\" transfer/transfer-02-consumer-pull/resources/start-transfer.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-02-consumer-pull/resources/start-transfer.json && echo DONE'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+ 
+        writeToTerminal("agreement ID in Datei schreiben...");
     }
 
     sendCommand(command)
@@ -513,9 +525,9 @@ async function startTransfer(button){
         try {
             
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c 'curl -X POST "http://localhost:29193/management/v3/transferprocesses" -H "Content-Type: application/json" -d @transfer/transfer-02-consumer-pull/resources/start-transfer.json -s | jq'`;
+                command = `docker exec -i ba84a752440c /bin/bash -c 'curl -X POST "http://localhost:29193/management/v3/transferprocesses" -H "Content-Type: application/json" -d @transfer/transfer-02-consumer-pull/resources/start-transfer.json -s | jq'`;
             }else{
-                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'curl -X POST "http://localhost:29193/management/v3/transferprocesses" -H "Content-Type: application/json" -d @transfer/transfer-02-consumer-pull/resources/start-transfer.json -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -X POST "http://localhost:29193/management/v3/transferprocesses" -H "Content-Type: application/json" -d @transfer/transfer-02-consumer-pull/resources/start-transfer.json -s'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
 
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
             }
@@ -550,9 +562,9 @@ async function checkTransferStatus(button){
             let command = null;
 
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -s 'http://localhost:29193/management/v3/transferprocesses/${transferProcessId}'"`;
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -s 'http://localhost:29193/management/v3/transferprocesses/${transferProcessId}'"`;
             }else{
-                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'curl -s 'http://localhost:29193/management/v3/transferprocesses/${transferProcessId}''\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -s 'http://localhost:29193/management/v3/transferprocesses/${transferProcessId}''\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
             }
 
@@ -595,9 +607,9 @@ async function getAuthorizationKey(button){
             let command = null;
 
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -s 'http://localhost:29193/management/v3/edrs/${transferProcessId}/dataaddress' | jq"`; 
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -s 'http://localhost:29193/management/v3/edrs/${transferProcessId}/dataaddress' | jq"`; 
             }else{
-                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'curl -s 'http://localhost:29193/management/v3/edrs/${transferProcessId}/dataaddress' | jq'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -s 'http://localhost:29193/management/v3/edrs/${transferProcessId}/dataaddress' | jq'\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
             }
 
@@ -635,9 +647,9 @@ async function getData(button){
             let command = null;  
 
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -s -X GET 'http://localhost:19291/public/1' -H 'Authorization: ${authorizationKey}'"`; 
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -s -X GET 'http://localhost:19291/public/1' -H 'Authorization: ${authorizationKey}'"`; 
             }else{
-                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i 674b02b6b54c /bin/sh -c 'curl -s -X GET 'http://localhost:19291/public/1' -H 'Authorization: ${authorizationKey}''\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
+                command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -s -X GET 'http://localhost:19291/public/1' -H 'Authorization: ${authorizationKey}''\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
             }
 
@@ -679,12 +691,12 @@ async function startProvider(button) {
         let command = null;  
 
         if(isLocalHost(button)){
-            command = `docker exec -i 4fef7ff3dd49 /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`; 
+            command = `docker exec -i ba84a752440c /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`; 
         }else{
             askForSshPassword(button);
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // 1 Sekunde warten und erneut versuchen
             //Container-ID noch ändern!
-            command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i 674b02b6b54c /bin/sh -c \\\"java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
+            command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i ccd6c7aff556 /bin/sh -c \\\"java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/provider-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
         }
 
         sendCommand(command);
@@ -703,15 +715,15 @@ async function createAssets(button) {
             let command = null;  
 
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl --data-binary @transfer/transfer-01-negotiation/resources/create-asset.json -H 'Content-Type: application/json' http://localhost:19193/management/v3/assets -s"`; 
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl --data-binary @transfer/transfer-01-negotiation/resources/create-asset.json -H 'Content-Type: application/json' http://localhost:19193/management/v3/assets -s"`; 
             }else{
-                command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i 674b02b6b54c /bin/sh -c \\\"curl -d @transfer/transfer-01-negotiation/resources/create-asset.json -H \\\\\\\"content-type: application/json\\\\\\\" http://localhost:19193/management/v3/assets -s\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
+                command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i ccd6c7aff556 /bin/sh -c \\\"curl -d @transfer/transfer-01-negotiation/resources/create-asset.json -H \\\\\\\"content-type: application/json\\\\\\\" http://localhost:19193/management/v3/assets -s\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
             }
 
             const response = await sendCommand(command);
             
             // Überprüfen, ob die Antwort gültig ist
-            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error") && response.toLowerCase().includes("id")) {
                 writeToTerminal("Erfolgreiche Antwort erhalten, Asset erstellt.");
                 writeToTerminal(response);
                 break; // Schleife beenden
@@ -741,9 +753,9 @@ async function createPolicies(button){
             let command = null;  
 
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl --data-binary @transfer/transfer-01-negotiation/resources/create-policy.json -H 'content-type: application/json' http://localhost:19193/management/v3/policydefinitions -s"`; 
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl --data-binary @transfer/transfer-01-negotiation/resources/create-policy.json -H 'content-type: application/json' http://localhost:19193/management/v3/policydefinitions -s"`; 
             }else{
-                command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i 674b02b6b54c /bin/sh -c \\\"curl -d @transfer/transfer-01-negotiation/resources/create-policy.json -H \\\\\\\"content-type: application/json\\\\\\\" http://localhost:19193/management/v3/policydefinitions -s\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
+                command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i ccd6c7aff556 /bin/sh -c \\\"curl -d @transfer/transfer-01-negotiation/resources/create-policy.json -H \\\\\\\"content-type: application/json\\\\\\\" http://localhost:19193/management/v3/policydefinitions -s\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
 
  
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
@@ -776,9 +788,9 @@ async function createContractDefinition(button){
             let command = null;  
 
             if(isLocalHost(button)){
-                command = `docker exec -i 4fef7ff3dd49 /bin/bash -c "curl -d @transfer/transfer-01-negotiation/resources/create-contract-definition.json -H 'content-type: application/json' http://localhost:19193/management/v3/contractdefinitions -s"`; 
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -d @transfer/transfer-01-negotiation/resources/create-contract-definition.json -H 'content-type: application/json' http://localhost:19193/management/v3/contractdefinitions -s"`; 
             }else{
-                command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i 674b02b6b54c /bin/sh -c \\\"curl -d @transfer/transfer-01-negotiation/resources/create-contract-definition.json -H \\\\\\\"content-type: application/json\\\\\\\" http://localhost:19193/management/v3/contractdefinitions -s\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
+                command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i ccd6c7aff556 /bin/sh -c \\\"curl -d @transfer/transfer-01-negotiation/resources/create-contract-definition.json -H \\\\\\\"content-type: application/json\\\\\\\" http://localhost:19193/management/v3/contractdefinitions -s\\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
 
             }
 
@@ -807,7 +819,7 @@ function disconnectFromDevice(button){
     let command = null;  
 
     if(isLocalHost(button)){
-        command = `docker exec -i 4fef7ff3dd49 /bin/sh -c \"pkill -f connector.jar\"`; 
+        command = `docker exec -i ba84a752440c /bin/sh -c \"pkill -f connector.jar\"`; 
     }else{
         writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
     }
@@ -845,8 +857,8 @@ function addConsumer() {
                                  <button id="btn-consumer${count}" name="consumer${count}">Connect</button>`;
         
         container.appendChild(newConsumer);
-
         addEventListenerToButtons();
+        sessionStorage.setItem('countConsumer', count);
     }
 }
 
@@ -854,9 +866,11 @@ function removeConsumer() {
     let container = document.getElementById("consumer-container");
     let consumers = container.querySelectorAll(".consumer-group"); // Holt nur die Consumer-Elemente
     let lastConsumer = consumers[consumers.length - 1];
+
     let inputField  = lastConsumer.querySelector("input");
     if (consumers.length > 1 && !inputField.disabled) { // Der erste Consumer bleibt immer erhalten
         container.removeChild(lastConsumer); // Nur das letzte Consumer-Element entfernen
+        sessionStorage.setItem('countConsumer', consumers.length-1);
     }
 }
 

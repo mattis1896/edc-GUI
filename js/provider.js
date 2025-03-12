@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function fillAssetData(){
     loadJsonData("../daten/temperature_data.json", "asset-data1", "°C");
-    loadJsonData("../daten/voltage_data.json", "asset-data2", "V");
-    loadJsonData("../daten/current_data.json", "asset-data3", "A");
+    loadJsonData("../daten/resistanceValue_data.json", "asset-data2", "Ω");
+    loadJsonData("../daten/IO_data.json", "asset-data3", "");
 }
 
 checkboxes.forEach(checkbox => {
@@ -34,18 +34,18 @@ function handleCheckboxChange(checkbox){
                 clearContainer("asset-data1")
             }
             break;
-        case "provider-data2":
-            if(checkbox.checked){
-                loadJsonData("../daten/voltage_data.json", "asset-data2", "V");
-            }else{
-                clearContainer("asset-data2")
-            }
-            break;
         case "provider-data3":
             if(checkbox.checked){
-                loadJsonData("../daten/current_data.json", "asset-data3", "A");
+                loadJsonData("../daten/IO_data.json", "asset-data3", "");
             }else{
                 clearContainer("asset-data3")
+            }
+            break;
+        case "provider-data2":
+            if(checkbox.checked){
+                loadJsonData("../daten/resistanceValue_data.json", "asset-data2", "Ω");
+            }else{
+                clearContainer("asset-data2")
             }
             break;
     }
@@ -99,45 +99,6 @@ function loadProvider() {
         fillAssetData();
     }
     
-    // Example data for demonstration
-    // const data = {
-    //     temperature: ['Policy 1', 'Policy 2'],
-    //     voltage: ['Policy 1', 'Policy 2', 'Policy 3'],
-    //     current: ['Policy 1', 'Policy 2']
-    // };
-
-    // // Catalog Policies
-    // const temperaturePolicies = document.getElementById('catalog-temperature');
-    // const voltagePolicies = document.getElementById('catalog-voltage');
-    // const currentPolicies = document.getElementById('catalog-current');
-
-    // data.temperature.forEach(policy => {
-    //     const p = document.createElement('p');
-    //     p.textContent = policy;
-    //     temperaturePolicies.appendChild(p);
-    // });
-
-    // data.voltage.forEach(policy => {
-    //     const p = document.createElement('p');
-    //     p.textContent = policy;
-    //     voltagePolicies.appendChild(p);
-    // });
-
-    // data.current.forEach(policy => {
-    //     const p = document.createElement('p');
-    //     p.textContent = policy;
-    //     currentPolicies.appendChild(p);
-    // });
-
-    // // Asset Data (Simulating loading the values dynamically for each category)
-    // const temperatureData = document.getElementById('asset-data1');
-    // const voltageData = document.getElementById('asset-data2');
-    // const currentData = document.getElementById('asset-data3');
-
-    // // Assuming dynamic data is coming from an API or similar
-    // temperatureData.innerHTML = '<p>Temperature Data 1</p><p>Temperature Data 2</p>';
-    // voltageData.innerHTML = '<p>Voltage Data 1</p><p>Voltage Data 2</p>';
-    // currentData.innerHTML = '<p>Current Data 1</p><p>Current Data 2</p>';
 }
 
 console.log(actorIpAdress);

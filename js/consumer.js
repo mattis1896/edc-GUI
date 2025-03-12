@@ -1,83 +1,3 @@
-// document.addEventListener("DOMContentLoaded", function () {
-//     const checkboxes = document.querySelectorAll(".select-data input[type='checkbox']");
-//     const consumerRight = document.createElement("div"); // Neuer Bereich für die Container
-//     consumerRight.classList.add("consumer-right");
-//     document.querySelector(".consumer").appendChild(consumerRight); // In den Hauptcontainer einfügen
-
-//     function updateDisplay() {
-//         // Alle aktivierten Checkboxen abrufen
-//         const selectedData = Array.from(checkboxes)
-//             .filter(checkbox => checkbox.checked)
-//             .map(checkbox => checkbox.nextSibling.textContent.trim());
-
-//         // Container-Bereich leeren
-//         consumerRight.innerHTML = "";
-
-//         if (selectedData.length === 0) return;
-
-//         // Höhe jedes Containers festlegen (1/3 der Bildschirmhöhe)
-//         const containerHeight = `calc(100vh / 3 - 10px)`;
-
-//         // Neue Container erstellen
-//         selectedData.forEach(data => {
-//             const div = document.createElement("div");
-//             div.classList.add("container"); // Gleiche Klasse wie die bestehenden Container
-//             div.textContent = data;
-//             div.style.height = containerHeight;
-//             consumerRight.appendChild(div);
-//         });
-//     }
-
-//     checkboxes.forEach(checkbox => {
-//         checkbox.addEventListener("change", updateDisplay);
-//     });
-// });
-
-// Alle Checkboxen abrufen
-// const checkboxes = document.querySelectorAll(".select-data input[type='checkbox']");
-
-// // Event-Listener für alle Checkboxen hinzufügen
-// checkboxes.forEach(checkbox => {
-//     checkbox.addEventListener("change", function () {
-//         handleCheckboxChange(this);
-//     });
-// });
-
-// // Funktion zur Verarbeitung der Änderungen
-// function handleCheckboxChange(checkbox) {
-//     const dataId = checkbox.id.replace("consumer1-", ""); // "data1", "data2", "data3"
-
-//     if (checkbox.checked) {
-//         console.log(`${dataId} wurde aktiviert`);
-//         addData(dataId);
-//     } else {
-//         console.log(`${dataId} wurde deaktiviert`);
-//         removeData(dataId);
-//     }
-// }
-
-// // Daten-Container hinzufügen
-// function addData(dataId) {
-//     let container = document.getElementById("show-data");
-
-//     if (!document.getElementById("vizualisation-" + dataId)) {
-//         let newData = document.createElement("div");
-//         newData.classList.add("container");
-//         newData.textContent = dataId; // Korrekte Bezeichnung setzen
-//         newData.id = "vizualisation-" + dataId;
-//         container.appendChild(newData);
-//     } 
-// }
-
-// // Daten-Container entfernen
-// function removeData(dataId) {
-//     const element = document.getElementById("vizualisation-" + dataId);
-//     if (element) {
-//         element.remove();
-//     }
-// }
-
-// Alle Checkboxen abrufen
 
 // Standardmäßig Consumer 1 laden
 
@@ -88,7 +8,10 @@ const actorIpAdress = {
     provider: sessionStorage.getItem("provider") || "" // Falls vorhanden, aus sessionStorage laden
 };
 let consumer;
+let countConsumer = parseInt(sessionStorage.getItem('countConsumer'), 10);
 document.addEventListener("DOMContentLoaded", () => loadConsumer(1));
+
+console.log(countConsumer);
 
 const containerRight = document.getElementById("show-data");
 const tabs = document.querySelectorAll(".navbar-consumer a");
@@ -115,6 +38,32 @@ function handleCheckboxChange(checkbox) {
     updateContainers(selectedCheckboxes);
 }
 
+function createNavbar() {
+    const navbar = document.querySelector('.navbar-consumer');
+    
+    // Leeren des aktuellen Inhalts der Navbar
+    navbar.innerHTML = '';
+    
+    // Erstellen der Links für jede Consumer-ID
+    for (let i = 1; i <= countConsumer; i++) {
+        const aTag = document.createElement('a');
+        aTag.href = '#';
+        aTag.id = `tab-consumer${i}`;
+        aTag.textContent = `Consumer ${i}`;
+        
+        // Hinzufügen des OnClick-Handlers für jeden Consumer
+        aTag.setAttribute('onclick', `loadConsumer(${i})`);
+        
+        // Füge den Link zur Navbar hinzu
+        navbar.appendChild(aTag);
+    }
+
+    // Optional: Füge das span-Element für die Adresse hinzu
+    const span = document.createElement('span');
+    span.id = 'show-consumer-address';
+    navbar.appendChild(span);
+}
+
 function updateContainers(selectedCheckboxes) {
     containerRight.innerHTML = "";
 
@@ -127,7 +76,6 @@ function updateContainers(selectedCheckboxes) {
         let newData = document.createElement("div");
         newData.classList.add("container","data");
         newData.textContent = checkbox.id.split("-")[1];
-        //newData.id = "data-" + dataId.split('-')[1];  // Nimmt den Teil nach dem Bindestrich
         newData.id = "data-" + checkbox.id;
         newData.style.height = containerHeight;
         newData.style.width = "94%";
@@ -226,49 +174,101 @@ function clearDynamicContent() {
     element.innerHTML = '';
 }
 
-
 function loadConsumer(consumerNumber) {
-    if(consumer != consumerNumber){
+    createNavbar(); // Navbar neu erstellen, wenn ein neuer Consumer geladen wird
+
+    // Wenn der Consumer gewechselt wurde
+    if (consumer !== consumerNumber) {
         const dataSelection = document.getElementById("data-selection");
         consumer = consumerNumber;
-        const dataLabels = {
-            1: { temperature: "consumer1-temperature", voltage: "consumer1-voltage", current: "consumer1-current" },
-            2: { temperature: "consumer2-temperature", voltage: "consumer2-voltage", current: "consumer2-current" },
-            3: { temperature: "consumer3-temperature", voltage: "consumer3-voltage", current: "consumer3-current" }
-        };
 
-        // Aktualisiert die Checkboxen basierend auf der Auswahl
+        // Dynamische Labels basierend auf der Consumer-Nummer
+        const dataLabels = {};
+        for (let i = 1; i <= countConsumer; i++) {
+            dataLabels[i] = {
+                temperature: `consumer${i}-temperature`,
+                IO: `consumer${i}-IO`,
+                resistanceValue: `consumer${i}-resistanceValue`
+            };
+        }
+
+        // Aktualisieren der Checkboxen basierend auf der Auswahl
         dataSelection.innerHTML = `
             <div class="select-data">
                 <label><input type="checkbox" id="${dataLabels[consumerNumber].temperature}"> Temperature</label>
-                <label><input type="checkbox" id="${dataLabels[consumerNumber].voltage}"> Voltage</label>
-                <label><input type="checkbox" id="${dataLabels[consumerNumber].current}"> Current</label>
+                <label><input type="checkbox" id="${dataLabels[consumerNumber].resistanceValue}"> Resistance value pt1000</label>
+                <label><input type="checkbox" id="${dataLabels[consumerNumber].IO}"> IO signal</label>
             </div>
         `;
-        const consumerName = "consumer"+consumerNumber;
-        if(actorIpAdress[consumerName].length > 0){
-            document.getElementById("show-consumer-address").textContent = "";
-            document.getElementById("show-consumer-address").textContent = "IP-Address: " + actorIpAdress[consumerName];
-        }else{
-            document.getElementById("show-consumer-address").textContent = "";
-            document.getElementById("show-consumer-address").textContent = "No Consumer " + consumerNumber + " connected!";
+
+        // Dynamisch den Consumer-Namen festlegen
+        const consumerName = `consumer${consumerNumber}`;
+        
+        // Dynamische IP-Adresse des Consumers anzeigen
+        if (actorIpAdress[consumerName].length > 0) {
+            document.getElementById("show-consumer-address").textContent = `IP-Address: ${actorIpAdress[consumerName]}`;
+        } else {
+            document.getElementById("show-consumer-address").textContent = `No Consumer ${consumerNumber} connected!`;
         }
-           
 
         // Event-Listener nachträglich für neue Checkboxen setzen
         addCheckboxListeners();
 
         // Hintergrundfarben der Tabs aktualisieren
-        document.getElementById("tab-consumer1").style.backgroundColor = "";
-        document.getElementById("tab-consumer2").style.backgroundColor = "";
-        document.getElementById("tab-consumer3").style.backgroundColor = "";
+        for (let i = 1; i <= countConsumer; i++) {
+            document.getElementById(`tab-consumer${i}`).style.backgroundColor = "";
+        }
         document.getElementById(`tab-consumer${consumerNumber}`).style.backgroundColor = "#EFF0F1";
 
+        // Dynamisch die restlichen Inhalte löschen
         clearDynamicContent();
     }
+}
+
+
+// function loadConsumer(consumerNumber) {
+//     createNavbar();
+//     if(consumer != consumerNumber){
+//         const dataSelection = document.getElementById("data-selection");
+//         consumer = consumerNumber;
+//         const dataLabels = {
+//             1: { temperature: "consumer1-temperature", IO: "consumer1-IO", resistanceValue: "consumer1-resistanceValue" },
+//             2: { temperature: "consumer2-temperature", IO: "consumer2-IO", resistanceValue: "consumer2-resistanceValue" },
+//             3: { temperature: "consumer3-temperature", IO: "consumer3-IO", resistanceValue: "consumer3-resistanceValue" }
+//         };
+
+//         // Aktualisiert die Checkboxen basierend auf der Auswahl
+//         dataSelection.innerHTML = `
+//             <div class="select-data">
+//                 <label><input type="checkbox" id="${dataLabels[consumerNumber].temperature}"> Temperature</label>
+//                 <label><input type="checkbox" id="${dataLabels[consumerNumber].resistanceValue}"> Resistance value pt1000</label>
+//                 <label><input type="checkbox" id="${dataLabels[consumerNumber].IO}"> IO signal</label>
+//             </div>
+//         `;
+//         const consumerName = "consumer"+consumerNumber;
+//         if(actorIpAdress[consumerName].length > 0){
+//             document.getElementById("show-consumer-address").textContent = "";
+//             document.getElementById("show-consumer-address").textContent = "IP-Address: " + actorIpAdress[consumerName];
+//         }else{
+//             document.getElementById("show-consumer-address").textContent = "";
+//             document.getElementById("show-consumer-address").textContent = "No Consumer " + consumerNumber + " connected!";
+//         }
+           
+
+//         // Event-Listener nachträglich für neue Checkboxen setzen
+//         addCheckboxListeners();
+
+//         // Hintergrundfarben der Tabs aktualisieren
+//         document.getElementById("tab-consumer1").style.backgroundColor = "";
+//         document.getElementById("tab-consumer2").style.backgroundColor = "";
+//         document.getElementById("tab-consumer3").style.backgroundColor = "";
+//         document.getElementById(`tab-consumer${consumerNumber}`).style.backgroundColor = "#EFF0F1";
+
+//         clearDynamicContent();
+//     }
 
     
-}
+// }
 
 
 
