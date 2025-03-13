@@ -5,6 +5,8 @@ const textConsumer = "consumer";
 let input = null;
 let responseText = null;
 let hostIP = null;
+let matchPolicyIds = null;
+let matchAssetIds = null;
 let contractNegotiationId = null;
 let contractAgreementId = null;
 let transferProcessId = null;
@@ -21,6 +23,18 @@ const actorIpAdress = {
     consumer2: sessionStorage.getItem("consumer2") || "",
     consumer3: sessionStorage.getItem("consumer3") || "",
     provider: sessionStorage.getItem("provider") || "" // Falls vorhanden, aus sessionStorage laden
+};
+
+const assetIds = {
+    asset1: sessionStorage.getItem("asset1") || "",
+    asset2: sessionStorage.getItem("asset2") || "",
+    asset3: sessionStorage.getItem("asset3") || ""
+};
+
+const jsonAssetData = {
+    jsonAsset1: sessionStorage.getItem("jsonAsset1") || "",
+    jsonAsset2: sessionStorage.getItem("jsonAsset2") || "",
+    jsonAsset3: sessionStorage.getItem("jsonAsset3") || ""
 };
 
 const actorContainerId = {
@@ -158,7 +172,8 @@ if (document.getElementById('terminal-container')) {
 
 async function loadConfiguration() {
     if (window.location.pathname.includes("configuration.html")) {
-        
+        console.log(assetIds);
+        console.log(jsonAssetData);
         if (sessionStorage.getItem('countConsumer') === null) {
             // Wenn es noch nicht existiert, setze es auf 1
             sessionStorage.setItem('countConsumer', 1);
@@ -345,12 +360,38 @@ function askForSshPassword(button) {
 async function connectToConsumer(button){
     await startConsumer(button);
     await fetchCatalog(button);
-    await negotiateContract(button);
-    await gettingContractAgreementID(button);
-    await startTransfer(button);
-    await checkTransferStatus(button);
-    await getAuthorizationKey(button);
-    await getData(button);
+    console.log(matchPolicyIds);
+    console.log(matchAssetIds);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await negotiateContract(button,matchPolicyIds[0], matchAssetIds[0]);
+    // await gettingContractAgreementID(button);
+    // await startTransfer(button);
+    // await checkTransferStatus(button);
+    // await getAuthorizationKey(button);
+    // await getData(button, matchAssetIds[0], 0+1);
+    // sessionStorage.setItem("assetIds", assetIds);
+    // sessionStorage.setItem("jsonAssetData", jsonAssetData);
+    // console.log(assetIds);
+    // console.log(jsonAssetData);
+  
+    if (matchPolicyIds) { // Prüft, ob es Treffer gibt
+        for (let i = 0; i < matchPolicyIds.length; i++) {
+            writeToTerminal("\r\r\r\rAssets: " + i);
+            console.log("Gefundene Policy ID:", matchPolicyIds[i]);
+            await negotiateContract(button,matchPolicyIds[i],matchAssetIds[i]);
+            await gettingContractAgreementID(button);
+            await startTransfer(button);
+            await checkTransferStatus(button);
+            await getAuthorizationKey(button);
+            await getData(button, matchAssetIds[i], i+1);
+        }
+        // console.log(assetIds);
+        // sessionStorage.setItem("assetIds", assetIds);  // assetIds im sessionStorage speichern
+        // sessionStorage.setItem("jsonAssetData", jsonAssetData);  // jsonAssetData im sessionStorage speichern
+        // console.log(sessionStorage);
+    } else {
+        console.log("Keine Policy-IDs gefunden.");
+    }  
 }
 
 function isLocalHost(button){
@@ -404,35 +445,19 @@ async function fetchCatalog(button){
             // Überprüfen, ob die Antwort gültig ist
             if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error") && response.toLowerCase().includes("@id")) {
                 writeToTerminal("Erfolgreiche Antwort erhalten, Katalog wird geholt");
-                const regex = /"odrl:hasPolicy":\s*{\s*"@id":\s*"([A-Za-z0-9\+=/:_-]+)"/;
-                const match = response.match(regex);
-                if (match && match[1]) {
-                    const policyId = match[1];
+                // const datasetRegex = /"dcat:dataset":\s*\[\s*({[^}]*?"@id":\s*"([^"]+)")/g;
+                const policyRegex = /"odrl:hasPolicy":\s*{\s*"@id":\s*"([^"]+)"/g;
 
-                    if(isLocalHost(button)){
-                        command = `docker exec -i ba84a752440c /bin/bash -c "jq --arg new_id '${policyId}' '.policy[\\\"@id\\\"] = \\$new_id' transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json && echo DONE"`; 
-                    }else{
-                        writeToTerminal("Policy ID: " + policyId);
-                        command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i ccd6c7aff556 /bin/sh -c \\"jq --arg new_id \\"${policyId}\\" \\".policy[\\\"@id\\\"] = \\\"$new_id\\\"\\\" transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json\\""; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact'`;
-                        
-                        
-                        const contractnegotiation = await getcontractNegotiation();
-                        console.log("Contract negotiation: " + JSON.stringify(contractnegotiation));
+                // Extrahiere alle Asset-IDs (dcat:dataset @id)
+                // matchAssetIds = [...response.matchAll(datasetRegex)].map(m => m[2]);
 
-                        writeToTerminal("Policy ID in Datei schreiben...");
-                    }
-
-                    sendCommand(command);
-                        // .then(response => console.log("Antwort vom Server:", response))
-                        // .catch(error => console.error("Fehler:", error));
-
-
-                    console.log(`Policy ID: ${policyId}`);
-                    writeToTerminal("Befehl: " + command)
-                } else {
-                    writeToTerminal('Kein Katalog gefunden.');
-                }
+                // Extrahiere alle Policy-IDs (odrl:hasPolicy @id)
+                matchPolicyIds = [...response.matchAll(policyRegex)].map(m => m[1]);
                 
+                const jsonData = JSON.parse(response);
+                matchAssetIds = jsonData['dcat:dataset'].map(dataset => dataset['@id']);
+                console.log("AssetIds: " + assetIds);
+
                 
                 break; // Schleife beenden
             } else {
@@ -446,13 +471,34 @@ async function fetchCatalog(button){
     }
 }
 
-async function negotiateContract(button){
+async function negotiateContract(button, policyId, assetId){
     writeToTerminal("Verhandle Vertrag...");
     await new Promise((resolve) => setTimeout(resolve, 1000));
     while (true) {
         try {
             
             let command = null;
+
+            if(isLocalHost(button)){
+                writeToTerminal("negotiate Contract policyID: " + policyId);
+                command = `docker exec -i ba84a752440c /bin/bash -c "jq --arg new_id '${policyId}' --arg asset_id '${assetId}' '.policy[\\\"@id\\\"] = \\$new_id | .policy[\\\"target\\\"] = \\$asset_id' transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json && echo DONE"`;
+ 
+            }else{
+                writeToTerminal("Policy ID: " + policyId);
+                command = `expect -c 'spawn ssh root@${actorIpAdress[button.name]} "docker exec -i ccd6c7aff556 /bin/sh -c \\"jq --arg new_id \\"${policyId}\\" \\".policy[\\\"@id\\\"] = \\\"$new_id\\\"\\\" transfer/transfer-01-negotiation/resources/negotiate-contract.json > /tmp/temp.json && mv /tmp/temp.json transfer/transfer-01-negotiation/resources/negotiate-contract.json\\""; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact'`;
+                
+                
+                const contractnegotiation = await getcontractNegotiation();
+                console.log("Contract negotiation: " + JSON.stringify(contractnegotiation));
+
+                writeToTerminal("Policy ID in Datei schreiben...");
+            }
+
+            sendCommand(command)
+                .then(response => console.log("Antwort vom Server:", response))
+                .catch(error => console.error("Fehler:", error));
+
+
             if(isLocalHost(button)){
                 command = `docker exec -i ba84a752440c /bin/bash -c "curl -d @transfer/transfer-01-negotiation/resources/negotiate-contract.json -X POST -H 'content-type: application/json' http://localhost:29193/management/v3/contractnegotiations -s"`;
             }else{
@@ -462,9 +508,9 @@ async function negotiateContract(button){
             }
 
             const response = await sendCommand(command);
-
+            writeToTerminal("negotiateContract response: " + response);
             // Überprüfen, ob die Antwort gültig ist
-            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
+            if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")&& !response.toLowerCase().includes("done")) {
                 writeToTerminal("Erfolgreiche Antwort erhalten, Vertrag verhandelt.");
                 
                 const regex = /"@id":\s*"([a-fA-F0-9\-]{36})"/;
@@ -472,7 +518,7 @@ async function negotiateContract(button){
                 writeToTerminal(response);
                 if (match && match[1]) {
                     contractNegotiationId = match[1];
-                    writeToTerminal(contractNegotiationId);
+                    writeToTerminal("contractNegotiationId: " + contractNegotiationId);
                 }
                 break; // Schleife beenden
             } else {
@@ -493,6 +539,7 @@ async function gettingContractAgreementID(button){
         try {
             let command = null;
             if(isLocalHost(button)){
+                writeToTerminal("gettingContractAgreementID contractNegotiationId: " + contractNegotiationId);
                 command = `docker exec -i ba84a752440c /bin/bash -c "curl -X GET 'http://localhost:29193/management/v3/contractnegotiations/${contractNegotiationId}' --header 'Content-Type: application/json' -s | jq"`;
             }else{
                 await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 Sekunde warten und erneut versuchen
@@ -501,6 +548,7 @@ async function gettingContractAgreementID(button){
             }
                 
             const response = await sendCommand(command);
+            writeToTerminal("gettingContractAgreementID response: " + response);
             // Überprüfen, ob die Antwort gültig ist
             if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error")) {
                 writeToTerminal("Erfolgreiche Antwort erhalten, ID erhalten.");
@@ -658,14 +706,15 @@ async function getAuthorizationKey(button){
     }
 }
 
-async function getData(button){
+async function getData(button, assetId, assetNumber){
     await new Promise((resolve) => setTimeout(resolve, 2000));
     while (true) {
         try {
             let command = null;  
 
             if(isLocalHost(button)){
-                command = `docker exec -i ba84a752440c /bin/bash -c "curl -s -X GET 'http://localhost:19291/public/1' -H 'Authorization: ${authorizationKey}'"`; 
+                writeToTerminal("get data local host");
+                command = `docker exec -i ba84a752440c /bin/bash -c "curl -s -X GET 'http://localhost:19291/public' -H 'Authorization: ${authorizationKey}'"`; 
             }else{
                 command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ccd6c7aff556 /bin/sh -c 'curl -s -X GET 'http://localhost:19291/public/1' -H 'Authorization: ${authorizationKey}''\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
                 writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
@@ -673,6 +722,16 @@ async function getData(button){
 
             const response = await sendCommand(command);
             writeToTerminal(response);
+
+            const assetKey = `asset${assetNumber}`; // Dynamisch den Schlüssel generieren, z.B. "asset2"
+            const jsonKey = `jsonAsset${assetNumber}`; // Dynamisch den Schlüssel generieren, z.B. "asset2"
+            console.log(assetKey);
+            console.log(jsonKey);
+            console.log("AssetID: " + assetId);
+            sessionStorage.setItem(assetKey, assetId);
+            sessionStorage.setItem(jsonKey, response);
+            
+
 
             break;
         } catch (error) {

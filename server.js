@@ -46,7 +46,7 @@ wss.on("connection", (ws) => {
                 ws.send(`stderr: ${stderr}`);
                 return;
             }
-            ws.send(`Ergebnis:\n${stdout}`);
+            ws.send(`${stdout}`);
         });
     });
 
