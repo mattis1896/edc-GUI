@@ -86,7 +86,7 @@ function updateContainers(selectedCheckboxes) {
 
     const containerHeight = `calc(73vh / ${selectedCheckboxes.length} - 10px)`;
 
-    selectedCheckboxes.forEach((checkbox, index) => {
+    selectedCheckboxes.forEach((checkbox) => {
         let newData = document.createElement("div");
         newData.classList.add("container", "data");
         newData.textContent = checkbox.id.split("-")[1];
@@ -94,12 +94,15 @@ function updateContainers(selectedCheckboxes) {
         newData.style.height = containerHeight;
         newData.style.width = "94%";
         containerRight.appendChild(newData);
-    
+        const match = checkbox.id.match(/\d+/); // Sucht die erste Zahl in der ID
+        const checkboxNumber = match ? match[0] : "1"; // Falls keine Zahl gefunden wird, Standardwert "1"
         // Dynamische Auswahl des JSON-Objekts basierend auf dem Index
-        const jsonKey = "jsonAsset" + (index + 1); // Ergibt z.B. "jsonAsset1", "jsonAsset2", ...
+        console.log(jsonAssetData)
+        const jsonKey = "jsonAsset" + checkboxNumber; // Ergibt z.B. "jsonAsset1", "jsonAsset2", ...
+        console.log(jsonKey);
         const jsonObject = JSON.parse(jsonAssetData[jsonKey] || "{}"); // Fallback auf leeres JSON, falls nicht vorhanden
-    
-        createChart(jsonObject, newData.id);
+        const assetIdKey = "asset" + checkboxNumber;
+        createChart(jsonObject, newData.id, assetIds[assetIdKey]);
     });
 }
 
@@ -108,9 +111,14 @@ function generatePath(text) {
     return `../daten/${variable}_data.json`;
 }
 
-function createChart(dataSource, containerID) {
+function createChart(dataSource, containerID, chartTitle) {
     const container = document.getElementById(containerID);
     
+    // Überschrift erstellen
+    let title = document.createElement("h7");
+    title.innerText = chartTitle; // Die Überschrift wird hier gesetzt
+    container.appendChild(title); // Überschrift zum Container hinzufügen
+
     let newChart = document.createElement("canvas");
     newChart.id = "chart-" + containerID.split('-')[2]; 
     newChart.classList.add("chart");
@@ -175,6 +183,7 @@ function createChart(dataSource, containerID) {
         })
         .catch(error => console.error('Fehler beim Laden oder Verarbeiten der JSON-Daten:', error));
 }
+
 
 
 // function createChart(jsonFilePath, containerID) {
@@ -266,7 +275,6 @@ function loadConsumer(consumerNumber) {
     createNavbar(); // Navbar neu erstellen, wenn ein neuer Consumer geladen wird
     console.log(assetIds);
     console.log(jsonAssetData);
-    console.log("SessionStorage: " + JSON.stringify(sessionStorage));
     console.log(assetIds["asset1"]);
 
 
@@ -297,9 +305,9 @@ function loadConsumer(consumerNumber) {
 
         dataSelection.innerHTML = `
             <div class="select-data">
-                <label><input type="checkbox" id="${assetIds["asset1"]}"> ${assetIds["asset1"]}</label>
-                <label><input type="checkbox" id="${assetIds["asset2"]}"> ${assetIds["asset2"]}</label>
-                <label><input type="checkbox" id="${assetIds["asset3"]}"> ${assetIds["asset3"]}</label>
+                <label><input type="checkbox" id="1_${assetIds["asset1"]}"> ${assetIds["asset1"]}</label>
+                <label><input type="checkbox" id="2_${assetIds["asset2"]}"> ${assetIds["asset2"]}</label>
+                <label><input type="checkbox" id="3_${assetIds["asset3"]}"> ${assetIds["asset3"]}</label>
             </div>
         `;
 
