@@ -356,28 +356,27 @@ function askForSshPassword(button) {
 
 }
 
+async function connectToProvider(button) {
+    try {
+        // Start the provider and wait for it to start successfully
+        await startProvider(button);
+        // Wait for the successful creation of the assets
+        await createAssets(button);
+        // Wait for the successful creation of the policies
+        await createPolicies(button);
+        // Wait for the successful creation of the contract definitions
+        await createContractDefinition(button);
+        writeToTerminal("Provider successfully started");
+    } catch (error) {
+        writeToTerminal("Error when carrying out the steps: " + error);
+    }
+}
 
 async function connectToConsumer(button){
     await startConsumer(button);
     await fetchCatalog(button);
-    console.log(matchPolicyIds);
-    console.log(matchAssetIds);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // await negotiateContract(button,matchPolicyIds[2], matchAssetIds[2]);
-    // await gettingContractAgreementID(button);
-    // await startTransfer(button);
-    // await checkTransferStatus(button);
-    // await getAuthorizationKey(button);
-    // await getData(button, matchAssetIds[1], 1);
-    
-    console.log("PolicyID 1: " + matchPolicyIds[0]);
-    console.log("PolicyID 2: " + matchPolicyIds[1]);
-    console.log("PolicyID 3: " + matchPolicyIds[2]);
-    if (matchPolicyIds) { // Prüft, ob es Treffer gibt
+    if (matchPolicyIds) {
         for (let i = 0; i < matchPolicyIds.length; i++) {
-            // writeToTerminal("\r\r\r\rAsset: " + i);
-            // writeToTerminal("\r\r\r\rAssetId: " + matchAssetIds[i]);
-            console.log("Gefundene Policy ID:", matchPolicyIds[i]);
             await negotiateContract(button,matchPolicyIds[i],matchAssetIds[i]);
             await gettingContractAgreementID(button);
             await startTransfer(button, matchAssetIds[i]);
@@ -385,13 +384,9 @@ async function connectToConsumer(button){
             await getAuthorizationKey(button);
             await getData(button, matchAssetIds[i], i+1);
         }
-        console.log(jsonAssetData);
-        writeToTerminal("Consumer succesfully started!");
-        // sessionStorage.setItem("assetIds", assetIds);  // assetIds im sessionStorage speichern
-        // sessionStorage.setItem("jsonAssetData", jsonAssetData);  // jsonAssetData im sessionStorage speichern
-        // console.log(sessionStorage);
+        writeToTerminal("Consumer succesfully connected!");
     } else {
-        console.log("Keine Policy-IDs gefunden.");
+        console.log("No policy IDs were found.");
     }  
 }
 
@@ -736,6 +731,7 @@ async function getData(button, assetId, assetNumber){
             const jsonKey = `jsonAsset${assetNumber}`; // Dynamisch den Schlüssel generieren, z.B. "asset2"
             console.log(assetKey);
             console.log(jsonKey);
+            console.log("data response: " + response);
             console.log("AssetID: " + assetId);
             writeToTerminal("AssetID: " + assetId);
             sessionStorage.setItem(assetKey, assetId);
@@ -751,23 +747,7 @@ async function getData(button, assetId, assetNumber){
     }
 }
 
-async function connectToProvider(button) {
-    try {
-        // Starte den Provider und warte darauf, dass er erfolgreich gestartet wird
-        await startProvider(button);
-        
-        // Warte auf die erfolgreiche Erstellung der Assets
-        await createAssets(button);
-        
-        // Optional: Hier kannst du die nächsten Schritte hinzufügen, die nach der Asset-Erstellung ausgeführt werden sollen
-        await createPolicies(button);
-        await createContractDefinition(button);
-        
-        writeToTerminal("Provider successfully started");
-    } catch (error) {
-        // writeToTerminal("Fehler beim Ausführen der Schritte: " + error);
-    }
-}
+
 
 async function startProvider(button) {
     writeToTerminal("Provider is started...");
@@ -916,7 +896,8 @@ function disconnectFromDevice(button){
     writeToTerminal(button.name + " has beend stopped");
 
     let command = null;  
-
+    // pkill an sich nicht nötig, da die Geräte ja provider und consumer sind, egal bo "verbunden" oder nicht. Hier muss eine andere Funktion rein, wie dass auf provider und consumer-
+    // Seite keine Informationen angezeigt werden, wenn diese nicht verbunden sind
     if(isLocalHost(button)){
         command = `docker exec -i ba84a752440c /bin/sh -c \"pkill -f connector.jar\"`; 
     }else{
