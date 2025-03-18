@@ -1,13 +1,10 @@
-const express = require("express");
-const path = require("path");
 const http = require("http");
+const express = require("express");
 const WebSocket = require("ws");
-const { exec } = require("child_process");
+const path = require("path");
+const { spawn } = require("child_process");
 
 const app = express();
-const PORT = 3000;
-
-
 
 // HTTP-Server erstellen
 const server = http.createServer(app);
@@ -17,9 +14,8 @@ const wss = new WebSocket.Server({ server });
 app.use(express.static(path.join(__dirname, "html")));
 app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
-app.use("/pictures", express.static(path.join(__dirname, "pictures"))); // Bilder-Ordner
+app.use("/pictures", express.static(path.join(__dirname, "pictures")));
 app.use("/daten", express.static(path.join(__dirname, "daten")));
-
 
 // WebSocket-Handling
 wss.on("connection", (ws) => {
@@ -34,19 +30,30 @@ wss.on("connection", (ws) => {
             return;
         }
 
-        // Befehl ausführen
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Fehler: ${error.message}`);
-                ws.send(`Fehler: ${error.message}`);
-                return;
-            }
-            if (stderr) {
-                console.warn(`stderr: ${stderr}`);
-                ws.send(`stderr: ${stderr}`);
-                return;
-            }
-            ws.send(`${stdout}`);
+        // Befehl mit `spawn` ausführen
+        const child = spawn(command, { shell: true });
+
+        // Ausgabe des Befehls in Echtzeit senden
+        child.stdout.on("data", (data) => {
+            console.log("stdout:", data.toString());
+            ws.send(data.toString());
+        });
+
+        // Fehlerausgabe senden
+        child.stderr.on("data", (data) => {
+            console.error("stderr:", data.toString());
+            ws.send("Fehler: " + data.toString());
+        });
+
+        // Prozessende loggen
+        child.on("close", (code) => {
+            console.log(`Prozess beendet mit Code ${code}`);
+            ws.send(`Prozess beendet mit Code ${code}`);
+        });
+
+        child.on("error", (error) => {
+            console.error("Fehler beim Starten des Prozesses:", error);
+            ws.send("Fehler beim Starten des Prozesses: " + error.message);
         });
     });
 
@@ -57,6 +64,11 @@ wss.on("connection", (ws) => {
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "html", "configuration.html"));
 });
+
+// Server starten
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
+
 
 app.get("/api/host-ip", (req, res) => {
     res.json({ hostIp: process.env.HOST_IP });
