@@ -87,12 +87,6 @@ app.get("/api/contractNegotiation", async (req, res) => {
     }
 });
 
-// Server starten
-server.listen(PORT, () => {
-    console.log(`Server läuft auf http://localhost:${PORT}`);
-});
-
-
 async function testReadJson(ipAdresse, passwort) {
     return new Promise((resolve, reject) => {
         const remotePath = 'transfer/transfer-01-negotiation/resources/negotiate-contract.json';
