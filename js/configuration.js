@@ -117,8 +117,10 @@ function sendCommand(command) {
 
         ws.onmessage = (event) => {
             console.log("Antwort erhalten:", event.data);
-            responseText += event.data + "\n"; // Antwort speichern
-            resolve(event.data.trim());
+            if (!event.data.includes("Prozess beendet mit Code") && !event.data.includes("DEBUG") && !event.data.includes("WARNING")) {
+                responseText += event.data + "\n"; // Antwort speichern
+                resolve(event.data.trim());
+            }
             // Falls die Nachricht "Prozess beendet mit Code" enthält, wissen wir, dass es fertig ist.
             if (event.data.includes("Prozess beendet mit Code")) {
                 // resolve(responseText.trim()); // Antwort zurückgeben
@@ -395,20 +397,20 @@ async function connectToProvider(button) {
 
 async function connectToConsumer(button){
     await startConsumer(button);
-    // await fetchCatalog(button);
-    // if (matchPolicyIds) {
-    //     for (let i = 0; i < matchPolicyIds.length; i++) {
-    //         await negotiateContract(button,matchPolicyIds[i],matchAssetIds[i]);
-    //         await gettingContractAgreementID(button);
-    //         await startTransfer(button, matchAssetIds[i]);
-    //         await checkTransferStatus(button);
-    //         await getAuthorizationKey(button);
-    //         await getData(button, matchAssetIds[i], i+1);
-    //     }
-    //     writeToTerminal("Consumer succesfully connected!");
-    // } else {
-    //     console.log("No policy IDs were found.");
-    // }  
+    await fetchCatalog(button);
+    if (matchPolicyIds) {
+        for (let i = 0; i < matchPolicyIds.length; i++) {
+            await negotiateContract(button,matchPolicyIds[i],matchAssetIds[i]);
+            await gettingContractAgreementID(button);
+            await startTransfer(button, matchAssetIds[i]);
+            await checkTransferStatus(button);
+            await getAuthorizationKey(button);
+            await getData(button, matchAssetIds[i], i+1);
+        }
+        writeToTerminal("Consumer succesfully connected!");
+    } else {
+        console.log("No policy IDs were found.");
+    }  
 }
 
 function isLocalHost(button){
@@ -423,7 +425,8 @@ async function startConsumer(button){
     
     try {
         let command = null;
-        // Starte den Consumer 
+        // Starte den Consumer
+        getContainerId(actorIpAdress[button.name],button); 
         if(isLocalHost(button)){
             command = `docker exec -i ${containerIDLocalHost} /bin/sh -c "java -Dedc.keystore=transfer/transfer-00-prerequisites/resources/certs/cert.pfx -Dedc.keystore.password=123456 -Dedc.fs.config=transfer/transfer-00-prerequisites/resources/configuration/consumer-configuration.properties -jar transfer/transfer-00-prerequisites/connector/build/libs/connector.jar"`;
         }else{
@@ -534,10 +537,10 @@ async function negotiateContract(button, policyId, assetId){
                 
                 const regex = /"@id":\s*"([a-fA-F0-9\-]{36})"/;
                 const match = response.match(regex);
-                // writeToTerminal(response);
+                writeToTerminal(response);
                 if (match && match[1]) {
                     contractNegotiationId = match[1];
-                    // writeToTerminal("contractNegotiationId: " + contractNegotiationId);
+                    writeToTerminal("contractNegotiationId: " + contractNegotiationId);
                 }
                 break; // Schleife beenden
             } else {
@@ -622,7 +625,7 @@ async function startTransfer(button, assetId){
                 // writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
             }
             response = await sendCommand(command);
-            // writeToTerminal("negotiateContract response: " + response);
+            writeToTerminal("negotiateContract response: " + response);
             //Überprüfen, ob die Antwort gültig ist
             if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error") && !response.toLowerCase().includes("done")) {
                 // writeToTerminal("Successful response received, transfer started.");
@@ -630,7 +633,7 @@ async function startTransfer(button, assetId){
                 const match = response.match(regex);
                 if (match && match[1]) {
                     transferProcessId = match[1];
-                    // writeToTerminal("transferprocessid: " + transferProcessId);
+                    writeToTerminal("transferprocessid: " + transferProcessId);
                 }
                 break; // Schleife beenden
             } else {
@@ -740,7 +743,7 @@ async function getData(button, assetId, assetNumber){
 
             if(isLocalHost(button)){
                 // writeToTerminal("get data local host");
-                command = `docker exec -i cf7945080320 /bin/bash -c "curl -s -X GET 'http://localhost:19291/public' -H 'Authorization: ${authorizationKey}'"`; 
+                command = `docker exec -i ${containerIDLocalHost} /bin/bash -c "curl -s -X GET 'http://localhost:19291/public' -H 'Authorization: ${authorizationKey}'"`; 
             }else{
                 command = `expect -c "spawn ssh root@${actorIpAdress[button.name]} \\"docker exec -i ${containerIDProvider} /bin/sh -c 'curl -s -X GET 'http://localhost:19291/public' -H 'Authorization: ${authorizationKey}''\\\"; expect \\"password:\\"; send \\"${actorSshPassword[button.name]}\\r\\"; interact"`;
                 // writeToTerminal("Hier dann Befehl um auf anderem Geraet auszuführen");
