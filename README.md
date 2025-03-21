@@ -41,7 +41,7 @@ This layout ensures that all necessary configurations are clearly visible and ea
 
 ![image](https://github.com/user-attachments/assets/abffd663-eac6-48cd-b4e0-9bd50f7d2fdf)
 
-The second page is the **Provider Page**, as shown in the figure above. This page displays all the information that the Provider can access:
+The second page is the **Provider Page**, as shown in the Figure above. This page displays all the information that the Provider can access:
 
 - **Navigation Bar**: At the top of the page, there is a navigation bar (1) allowing you to switch between pages, just like on the other pages.
 
@@ -55,7 +55,7 @@ This layout provides the Provider with all necessary details about the available
 
 ![image](https://github.com/user-attachments/assets/417ce2c9-9913-414e-9bda-f1aa42ab67a1)
 
-The final page is the **Consumer Page**, as shown in Figure 4.5. This page displays all the information that the Consumer can access:
+The final page is the **Consumer Page**, as shown in the Figure above. This page displays all the information that the Consumer can access:
 
 - **Navigation Bar**: At the top of the page, you can switch between the different pages (1), just like on the other pages.
 
