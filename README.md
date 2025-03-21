@@ -98,4 +98,17 @@ For a more detailed explanation of how the data exchange process works, refer to
 
 By following these steps and ensuring the correct configuration, you can establish seamless communication between two devices, with the Consumer and Provider exchanging data efficiently.
 
+## Things to be Done
+
+### Implementation of Policies
+
+To further strengthen Gaia-X compliance, the implementation of policies is a useful extension. This ensures that consumers can only access assets that meet the policies they fulfill. It reinforces the principle that a consumer can only retrieve data for which the provider has granted permission.
+
+### Display of Real-Time Data
+
+Another aspect is the display of real-time data. Currently, this is not easily possible, as the values cannot be directly read with code. However, this can be achieved by implementing an appropriate method for reading and providing this data.
+
+### Solution for Communication Between Edge Computer and PFC200
+
+A solution needs to be implemented for the communication between the edge computer and the PFC200. It must be ensured that the provider and the consumer can run on two different devices.
 
