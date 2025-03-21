@@ -1,0 +1,40 @@
+# Verwenden des OpenJDK 17 Slim Images als Basis
+FROM openjdk:17-jdk-slim
+
+# Setze das Arbeitsverzeichnis im Container
+WORKDIR /app
+
+# Update der Paketquellen und Installiere notwendige Tools (Git, Docker, wget, SSH-Client, Ping)
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    docker.io \
+    wget \
+    openssh-client \
+    iputils-ping \
+    curl \
+    && apt-get clean
+
+# Git SSL-Backend auf GnuTLS setzen
+RUN git config --global http.sslBackend gnutls
+
+# Installiere Node.js und npm (nodejs und npm separat installieren, um sicherzustellen, dass npm verfügbar ist)
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean
+
+# Überprüfen, ob npm installiert wurde
+RUN npm -v
+
+# Klone das Repository
+RUN git clone https://github.com/mattis1896/edc-GUI.git .
+
+# Installiere die Abhängigkeiten der Node.js-Anwendung
+RUN npm install
+
+# Exponiere den Port 3000, falls die App darauf läuft
+EXPOSE 3000
+
+# Starte die Anwendung mit einem vorherigen Git-Pull
+CMD ["node", "server.js"]
+
