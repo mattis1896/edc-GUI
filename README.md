@@ -10,6 +10,7 @@ This repository depends on [edc-connector-repo-WS2024](https://github.com/mattis
 
 - The **GUI** and the **EDC** (Eclipse DataSpace Connector) must be run in Docker containers created with the provided Dockerfiles.
 - Currently, the system works only when both the **EDC** and **GUI** containers are running on the **same device**.
+- At the beginning, when starting the container, a `git pull` should be executed, or the Dockerfile should be adjusted to ensure this happens automatically whenever an internet connection is available.
 
 ## Communication Between Two Devices
 
