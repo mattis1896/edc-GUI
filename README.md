@@ -19,6 +19,8 @@ In the current setup, the containers are designed to run on a single machine. If
 
 ## Configuration Page Overview
 
+![image](https://github.com/user-attachments/assets/4b490175-3737-4842-a929-1151decfa23c)
+
 Upon launching the GUI, you are directed to the **Configuration Page**, as shown in Figure 4.3. This page includes several features designed for ease of use and efficient interaction:
 
 - **Navigation Bar**: At the top of the page, there is a navigation bar (1) that allows you to switch between the three pages. The currently active page is highlighted in light grey.
