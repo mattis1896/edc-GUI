@@ -90,7 +90,7 @@ Additionally, the following JSON files must be updated to ensure proper communic
 In each of these files, replace `localhost` with the **IP address of the Provider**.
 
 ### 3. Future Automation with `configuration.js`
-These changes can also be automated in the future using the `configuration.js` script. However, this feature is not yet implemented. Currently, the script contains checks for each command to determine if it should be executed on `localhost` or elsewhere. It checks whether the **connector** is running on the same device as the GUI or on a different one. Based on this, the command will be adjusted accordingly.
+These changes can also be automated in the future using the `configuration.js` script. However, this feature is not yet implemented. Currently, the script contains checks for each command to determine if it should be executed on `localhost` or elsewhere. It checks whether the **consumer** or **provider** is running on the same device as the GUI or on a different one. Based on this, the command will be adjusted accordingly.
 
 ### 4. Data Exchange Process
 For a more detailed explanation of how the data exchange process works, refer to the **README.md** file in the `js` folder. This document provides an in-depth overview of the data flow and how the system handles communication between devices.
