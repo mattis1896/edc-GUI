@@ -116,10 +116,15 @@ The graph for the selected data is drawn using the **Chart.js** library. It crea
 - Replace <command> with the command you want to execute on the target device.
 - Replace <ssh-password> with the SSH password for the target device.
 
-2. **Execute a command in a Docker container**
+### Important Commands
 
-```bash
+2. **Execute a command in a Docker container**  
+
+   To execute a command inside a Docker container, use the following:
+
+   ```bash
    docker exec <containerID> <command>
+
 
 - Replace <containerID> with the ID of the Docker container.
 - Replace <command> with the command you want to run inside the container.
