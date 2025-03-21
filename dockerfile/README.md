@@ -7,7 +7,7 @@ This document explains how to build and run a Docker container that encapsulates
 To build the Docker image, use the following command:
 
 ```bash
-docker build -t <username>/edc:gui
+docker build -t <username>/edc:gui .
 ```
 `docker build`
 This command is used to create a Docker image from a Dockerfile. It reads the instructions in the Dockerfile and builds the image accordingly.
