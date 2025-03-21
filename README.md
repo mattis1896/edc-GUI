@@ -14,3 +14,5 @@ This repository depends on [edc-connector-repo-WS2024](https://github.com/mattis
 ## Communication Between Two Devices
 
 In the current setup, the containers are designed to run on a single machine. If you want to run the **GUI** and **EDC** on **two different devices**, the necessary steps will be outlined in the section **"Solution for Communication Between Two Devices"**.
+
+![image](https://github.com/user-attachments/assets/27862253-e704-4665-b8ab-af1b96f0413e)
