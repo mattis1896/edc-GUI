@@ -71,6 +71,8 @@ This layout ensures that the Consumer can easily view the relevant data, manage 
 
 # Solution for Communication Between Two Devices
 
+This solution has been successfully tested manually with two **Edge Computers**, where communication between the Consumer and Provider devices worked as expected. However, it has not yet been tested with a **PFC**.
+
 To enable communication between two devices, it is essential to first determine which device will act as the **Consumer** and which will act as the **Provider**. Once this is clarified, the following steps must be taken to configure the devices:
 
 ### 1. Modify the Properties Files
