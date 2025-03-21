@@ -103,3 +103,27 @@ The **`consumer.js`** file handles the logic for the Consumer page. Upon loading
 
 ### Chart.js Integration:
 The graph for the selected data is drawn using the **Chart.js** library. It creates a line chart that is fully configurable, ensuring it looks as shown in Figure 4.5. The chart’s appearance and behavior are responsive, adapting to different screen sizes.
+
+### Important Commands
+
+1. **Execute a command via SSH**  
+   To execute a command on a target device using SSH, use the following command in your terminal on the source device:
+
+   ```bash
+   expect -c "spawn ssh root@<ip-target-device> \"<command>\"; expect \"password:\"; send \"<ssh-password>\r\"; interact"
+
+- Replace <ip-target-device> with the IP address of the target device.
+- Replace <command> with the command you want to execute on the target device.
+- Replace <ssh-password> with the SSH password for the target device.
+
+2. **Execute a command in a Docker container**
+
+```bash
+   docker exec <containerID> <command>
+
+- Replace <containerID> with the ID of the Docker container.
+- Replace <command> with the command you want to run inside the container.
+
+3. **Combine steps 1 and 2 to execute a command in a container on a remote device**
+
+To execute a command inside a Docker container on a remote device, you can combine the previous two commands.
