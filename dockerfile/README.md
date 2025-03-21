@@ -48,3 +48,11 @@ This assigns the name gui to the running container. You can refer to this contai
 
 `-it`:
 This option allows interactive terminal access to the container.
+
+<username>/edc:gui:
+This specifies the image to run. It refers to the image you built earlier with the docker build command.
+
+`<username>`:
+Your Docker username or repository name.
+  - edc: The project or image name.
+  - gui: The tag that represents the GUI version of the image.
