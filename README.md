@@ -8,7 +8,7 @@ This repository depends on [edc-connector-repo-WS2024](https://github.com/mattis
 
 ## Important Notes
 
-- The **GUI** and the **EDC** (Entity Data Connector) must be run in Docker containers created with the provided Dockerfiles.
+- The **GUI** and the **EDC** (Eclipse DataSpace Connector) must be run in Docker containers created with the provided Dockerfiles.
 - Currently, the system works only when both the **EDC** and **GUI** containers are running on the **same device**.
 
 ## Communication Between Two Devices
