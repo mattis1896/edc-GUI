@@ -125,7 +125,6 @@ The graph for the selected data is drawn using the **Chart.js** library. It crea
    ```bash
    docker exec <containerID> <command>
 
-
 - Replace <containerID> with the ID of the Docker container.
 - Replace <command> with the command you want to run inside the container.
 
