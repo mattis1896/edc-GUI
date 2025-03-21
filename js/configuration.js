@@ -1,7 +1,12 @@
 
+// WebSocket connection to the server for real-time communication
 const ws = new WebSocket("ws://localhost:3000");
+
+// Defines the actors for provider and consumer
 const textProvider = "provider";
 const textConsumer = "consumer";
+
+// General and temporary variables for the connection process
 let input = null;
 let hostIP = null;
 let matchPolicyIds = null;
@@ -11,45 +16,48 @@ let contractAgreementId = null;
 let transferProcessId = null;
 let authorizationKey = null;
 
-// Vorübergehende Variablen
+// Stores container IDs for local and remote providers
 let containerIDLocalHost = null;
 let containerIDProvider = null;
 
-
+// IP addresses of the actors, loaded from sessionStorage
 const actorIpAdress = {
     consumer1: sessionStorage.getItem("consumer1") || "",
     consumer2: sessionStorage.getItem("consumer2") || "",
     consumer3: sessionStorage.getItem("consumer3") || "",
-    provider: sessionStorage.getItem("provider") || "" // Falls vorhanden, aus sessionStorage laden
+    provider: sessionStorage.getItem("provider") || ""
 };
 
+// Asset IDs corresponding to the transferred data
 const assetIds = {
     asset1: sessionStorage.getItem("asset1") || "",
     asset2: sessionStorage.getItem("asset2") || "",
     asset3: sessionStorage.getItem("asset3") || ""
 };
 
+// JSON data of assets from sessionStorage
 const jsonAssetData = {
     jsonAsset1: sessionStorage.getItem("jsonAsset1") || "",
     jsonAsset2: sessionStorage.getItem("jsonAsset2") || "",
     jsonAsset3: sessionStorage.getItem("jsonAsset3") || ""
 };
 
+// Stores container IDs of the actors (not used right now) right now containerIDLocalHost and containerIDProvider are used. Should be changed
 const actorContainerId = {
     consumer1: sessionStorage.getItem("consumer1") || "",
     consumer2: sessionStorage.getItem("consumer2") || "",
     consumer3: sessionStorage.getItem("consumer3") || "",
-    provider: sessionStorage.getItem("provider") || "" // Falls vorhanden, aus sessionStorage laden
-}
+    provider: sessionStorage.getItem("provider") || ""
+};
 
 const actorSshPassword = {
     consumer1: sessionStorage.getItem("consumer1") || "",
     consumer2: sessionStorage.getItem("consumer2") || "",
     consumer3: sessionStorage.getItem("consumer3") || "",
-    provider: sessionStorage.getItem("provider") || "" // Falls vorhanden, aus sessionStorage laden
-}
+    provider: sessionStorage.getItem("provider") || ""
+};
 
-
+// Terminal variable for the user interface
 let term;
 
 // Triggered when the WebSocket connection is successfully opened
