@@ -36,6 +36,12 @@ To automate the data exchange, the following setup is required:
    ```bash
    -e HOST_IP=<IP-ADDRESS>
 
+4. **WebSocket and Python Servers**: Both the WebSocket server inside the GUI Docker container and the Python server in the EDC Docker container need to be running. This setup is handled automatically through their respective Dockerfiles.
+
+5. **Connector Creation**: Inside the Docker containers, the "build" folder must be correctly positioned to build the connector in the EDC. The connector will then be automatically used as either a Provider or Consumer, depending on the configuration. This is handled automatically through their respective Dockerfiles.
+
+6. **Required JSON Files**: For communication with the EDC (as outlined in the demo setup), several JSON files are required. These JSON files are used to facilitate the negotiation and exchange of data between the Provider and Consumer. 
+
 ## 2. `provider.js`
 
 The **`provider.js`** file handles the logic for the Provider page. When the page is loaded, the policies for the assets and the measurement series are populated in the corresponding HTML elements.
