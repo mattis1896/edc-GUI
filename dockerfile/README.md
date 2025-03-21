@@ -54,5 +54,5 @@ This specifies the image to run. It refers to the image you built earlier with t
 
 `<username>`:
 Your Docker username or repository name.
-  - edc: The project or image name.
-  - gui: The tag that represents the GUI version of the image.
+  - `edc`: The project or image name.
+  - `gui`: The tag that represents the GUI version of the image.
