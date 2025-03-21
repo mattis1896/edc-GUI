@@ -69,4 +69,30 @@ The final page is the **Consumer Page**, as shown in the Figure above. This page
 
 This layout ensures that the Consumer can easily view the relevant data, manage selections, and understand the policies governing their access.
 
+# Solution for Communication Between Two Devices
+
+To enable communication between two devices, it is essential to first determine which device will act as the **Consumer** and which will act as the **Provider**. Once this is clarified, the following steps must be taken to configure the devices:
+
+### 1. Modify the Properties Files
+Both devices require modifications to their respective **properties files** located at:
+[edc-connector-repo-WS2024 Configuration Files](https://github.com/mattis1896/edc-connector-repo-WS2024/tree/main/transfer/transfer-00-prerequisites/resources/configuration)
+- **For the Consumer**: In the consumer's properties file, replace `localhost` with the **IP address of the Consumer**.
+- **For the Provider**: In the provider's properties file, replace `localhost` with the **IP address of the Provider**.
+
+### 2. Modify JSON Files
+Additionally, the following JSON files must be updated to ensure proper communication:
+- **fetch-catalog.json**
+- **negotiate-contract.json**
+- **start-transfer.json**
+
+In each of these files, replace `localhost` with the **IP address of the Provider**.
+
+### 3. Future Automation with `configuration.js`
+These changes can also be automated in the future using the `configuration.js` script. However, this feature is not yet implemented. Currently, the script contains checks for each command to determine if it should be executed on `localhost` or elsewhere. It checks whether the **Consumer** is running on the same device as the GUI or on a different one. Based on this, the command will be adjusted accordingly.
+
+### 4. Data Exchange Process
+For a more detailed explanation of how the data exchange process works, refer to the **README.md** file in the `js` folder. This document provides an in-depth overview of the data flow and how the system handles communication between devices.
+
+By following these steps and ensuring the correct configuration, you can establish seamless communication between two devices, with the Consumer and Provider exchanging data efficiently.
+
 
