@@ -14,6 +14,28 @@ The **`configuration.js`** file manages all user-provided information, including
 - **Dynamic Consumer Management**: Allows for the dynamic addition or removal of Consumers when the corresponding button is clicked.
 - **Reset Function**: The **`resetButtonClick()`** function is triggered when the reset button is pressed. It clears relevant data, such as session storage, terminal content, and saved IP addresses.
 
+### Automated Data Exchange
+
+#### Prerequisites
+
+To automate the data exchange, the following setup is required:
+
+1. **EDC Docker Container**: The EDC Docker container must be running on all devices.
+2. **GUI Docker Container**: The GUI Docker container must be running on one device (the Edge computer in this demo setup).
+
+**Important considerations for the demo setup**:
+- The **GUI** should be running on the **Edge Computer**, as described earlier.
+- Ensure that the Docker containers are started correctly. For proper communication with the EDC, the following internal ports must be exposed via port mapping:
+  - **19193**
+  - **29193**
+  - **19291**
+  
+  These ports need to be accessible from outside the containers to allow proper communication.
+
+3. **IP Address Configuration**: When starting the Docker container for the GUI, the host IP address must be passed using the following option:
+   ```bash
+   -e HOST_IP=<IP-ADDRESS>
+
 ## 2. `provider.js`
 
 The **`provider.js`** file handles the logic for the Provider page. When the page is loaded, the policies for the assets and the measurement series are populated in the corresponding HTML elements.
