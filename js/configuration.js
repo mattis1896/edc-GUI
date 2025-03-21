@@ -729,6 +729,10 @@ async function fetchCatalog(button) {
  * @returns {Promise} - A Promise that resolves once the contract negotiation is successful and a contract ID is retrieved.
  */
 async function negotiateContract(button, policyId, assetId) {
+    // Log the asset ID for debugging purposes
+    writeToTerminal("Get data for asset with ID: " + assetId);
+
+
     writeToTerminal("Contract negotiation...");
     await new Promise((resolve) => setTimeout(resolve, 1000));  // 1 second wait before starting negotiation
 
@@ -768,12 +772,10 @@ async function negotiateContract(button, policyId, assetId) {
                 // Use regex to extract the contract negotiation ID from the response
                 const regex = /"@id":\s*"([a-fA-F0-9\-]{36})"/;
                 const match = response.match(regex);
-                writeToTerminal(response);
                 
                 // If a match is found, store the contract negotiation ID
                 if (match && match[1]) {
                     contractNegotiationId = match[1];
-                    writeToTerminal("contractNegotiationId: " + contractNegotiationId);
                 }
                 break;  // Break the loop once the contract has been successfully negotiated
             } else {
@@ -868,6 +870,8 @@ async function startTransfer(button, assetId) {
     // Wait 1 second before checking the transfer status
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    writeToTerminal("Transfer started...");
+
     // Continuously check the transfer process status
     while (true) {
         try {
@@ -882,7 +886,6 @@ async function startTransfer(button, assetId) {
 
             // Send the command to check the transfer status
             response = await sendCommand(command);
-            writeToTerminal("negotiateContract response: " + response);
 
             // Check if the response is valid (no errors or failure)
             if (response && response.trim() !== "" && !response.toLowerCase().includes("fehler") && !response.toLowerCase().includes("failed") && !response.toLowerCase().includes("error") && !response.toLowerCase().includes("done")) {
@@ -891,7 +894,6 @@ async function startTransfer(button, assetId) {
                 const match = response.match(regex);
                 if (match && match[1]) {
                     transferProcessId = match[1]; // Store the transfer process ID
-                    writeToTerminal("transferprocessid: " + transferProcessId);
                 }
                 break; // Exit the loop once the transfer process ID is retrieved
             } else {
@@ -917,6 +919,8 @@ async function startTransfer(button, assetId) {
 async function checkTransferStatus(button) {
     // Delay the start of the status check by 2 seconds
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    writeToTerminal("Checking transfer status...");
 
     // Infinite loop to check the transfer status repeatedly
     while (true) {
@@ -975,6 +979,8 @@ async function getAuthorizationKey(button) {
     // Delay the start of the process by 2 seconds to allow for any preliminary operations to complete
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
+    writeToTerminal("Getting the AuthorizationKey...");
+
     // Loop to attempt getting the authorization key
     while (true) {
         try {
@@ -1003,7 +1009,7 @@ async function getAuthorizationKey(button) {
 
                 if (match && match[1]) {
                     authorizationKey = match[1];  // Store the authorization key
-                    // writeToTerminal(authorizationKey);
+                    writeToTerminal("AuthorizationKey received");
                 }
             }
 
@@ -1032,6 +1038,8 @@ async function getData(button, assetId, assetNumber) {
     // Delay the start of the process by 2 seconds to allow for any preliminary operations to complete
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
+    writeToTerminal("Getting the data...");
+
     // Loop to attempt retrieving the asset data
     while (true) {
         try {
@@ -1053,12 +1061,11 @@ async function getData(button, assetId, assetNumber) {
             const assetKey = `asset${assetNumber}`;  // Example: "asset2"
             const jsonKey = `jsonAsset${assetNumber}`;  // Example: "jsonAsset2"
 
-            // Log the asset ID for debugging purposes
-            writeToTerminal("AssetID: " + assetId);
-
             // Store the asset ID and the retrieved data (JSON response) in sessionStorage
             sessionStorage.setItem(assetKey, assetId);
             sessionStorage.setItem(jsonKey, response);
+
+            writeToTerminal("Data received and stored");
 
             // Exit the loop once the data is successfully retrieved and stored
             break;
@@ -1122,7 +1129,6 @@ async function getContainerId(ipAdress, button) {
         
         // Extract the container ID from the response
         containerId = extractContainerId(containerId);
-        writeToTerminal("Container ID: " + containerId);  // Log the container ID
         console.log("ContainerID: " + containerId);  // Log to console for debugging
         containerIDLocalHost = containerId; // Store the container ID for local execution
     } else {
@@ -1132,21 +1138,18 @@ async function getContainerId(ipAdress, button) {
 
         // Try the first image (edge) via SSH
         command = `expect -c 'spawn ssh root@${ipAdress} "docker ps -q --filter \\"ancestor=mattis96/edc:edge\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
-        writeToTerminal("Command1: " + command);  // Log the SSH command for debugging
+        
         let containerId = await sendCommand(command);
-        writeToTerminal("ContainerID1: " + containerId);  // Log the container ID for first image
 
         // If no container ID found for the first image, try the second image (pfc)
         if (!containerId) {
             command = `expect -c 'spawn ssh root@${ipAdress} "docker ps -q --filter \\"ancestor=mattis96/edc:pfc\\""; expect "password:"; send "${actorSshPassword[button.name]}\\r"; interact'`;
-            writeToTerminal("Command2: " + command);  // Log the SSH command for second image
+            
             containerId = (await sendCommand(command)).trim();
-            writeToTerminal("ContainerID2: " + containerId);  // Log the container ID for second image
         }
 
         // Extract the container ID from the response
         containerId = extractContainerId(containerId);
-        writeToTerminal("Container ID: " + containerId);  // Log the final container ID
         console.log("ContainerID: " + containerId);  // Log to console for debugging
         containerIDProvider = containerId;  // Store the container ID for remote execution
     }
@@ -1204,7 +1207,7 @@ async function createAssets(button) {
 
     // List of JSON files to be used for creating assets
     const jsonFiles = ["create-asset-temperature.json", "create-asset-resistanceValue.json", "create-asset-IO.json"];
-
+    writeToTerminal("create assets...");
     // Loop through each JSON file
     for (const jsonFile of jsonFiles) {
         while (true) {
@@ -1213,7 +1216,6 @@ async function createAssets(button) {
 
                 // Check if the execution is local or remote
                 if (isLocalHost(button)) {
-                    writeToTerminal("create assets...");
                     // Command for local execution: sends the JSON data to the local provider's API
                     command = `docker exec -i ${containerIDLocalHost} /bin/bash -c "curl --data-binary @transfer/transfer-01-negotiation/resources/${jsonFile} -H 'Content-Type: application/json' http://localhost:19193/management/v3/assets -s"`;
                 } else {
@@ -1293,6 +1295,7 @@ async function createPolicies(button) {
             throw error; // Rethrow the error for handling by the calling function
         }
     }
+    writeToTerminal("All policies have been successfully created.");
 }
 
 
@@ -1340,6 +1343,7 @@ async function createContractDefinition(button) {
             throw error; // Rethrow the error for handling by the calling function
         }
     }
+    writeToTerminal("All contracts have been successfully created.");
 }
 
 
